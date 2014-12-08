@@ -1,0 +1,240 @@
+grammar org.xtext.ModuleDsl with org.eclipse.xtext.common.Terminals
+
+generate moduleDsl "http://www.xtext.org/ModuleDsl"
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+LANGUAGE:
+	(modules += MODULE_DECL)+
+;
+
+/*
+ * Constraints: Module name must be unique, 
+ * If two "datasel" criteria are chosen, they must be distinct
+ */
+MODULE_DECL: 
+	'module' {MODULE_DECL} name = IDENT '{'
+		strategy  = STRATEGY
+		interface = INTERFACE
+		body = BODY
+	'}'
+;
+
+STRATEGY:
+	'@' 'strategy' {STRATEGY} '{'
+		(critdecl = CRITERION_DECL)	
+		(dataseldecl = DATASEL_DECL)
+	'}'
+;
+
+INTERFACE:
+	'@' 'interface'	{INTERFACE} '{' 
+		(declaration += AbstractVAR_DECL)+
+	'}'
+;
+
+BODY:
+	'@' 'body' {BODY} '{'
+		(statements += STATEMENT)*
+	'}'
+;
+
+CRITERION_DECL:
+	'crit' ':' {CRITERION_DECL} (crit=CRITERION)  (';')?
+;
+
+DATASEL_DECL:
+	'datasel' ':' {DATASEL_DECL} (data1=DATASEL) (','data2=DATASEL)?  (';')?
+;
+
+/* 
+ * Strategies to be used
+ */
+
+CRITERION:
+	crit= ('mcdc' | 'dc' | 'cc')
+;
+
+/*
+ * Data selection policy
+ */
+ 
+ DATASEL:
+	sel = ('rand' | 'eqv' | 'bv')
+;
+
+
+/*
+ * variables macros and instructions declaration
+ */
+ 
+
+/**
+ * Variables declaration
+ * Constraints: bool variable has no range
+ * enum variable must enable a set of values
+ * enum and string variables supports Set Range only
+ */
+AbstractVAR_DECL:
+	VAR_DECL | TmpVAR_DECL | CST_DECL
+;
+
+VAR_DECL:
+	{VAR_DECL} flow=Flow name=IDENT ':' type=TYPE (range=RANGE)? (';')?
+;
+
+Flow:
+	flow=('in' | 'out' | 'inout' ) 
+;
+
+/*
+ * Constant Values declaration
+ */
+
+CST_DECL:
+	{CST_DECL} flow='const' type=TYPE name=IDENT '==' value=Literal (';')?
+;
+
+TmpVAR_DECL:
+	{TmpVAR_DECL} type=TYPE name=IDENT 'init' (value = EXPRESSION) (';')?
+;
+
+TYPE:
+	type= ('int' | 'real' | 'bool' | 'enum' | 'bit' | 'hex' | 'str')
+;
+
+RANGE:
+	INTERVAL | LSET
+;
+
+INTERVAL:
+	lsqbr=(']' | '[') min=Literal '..' max=Literal  rsqbr=(']' | '[')
+;
+
+LSET:
+	 '{' {LSET} (value+=Literal) (',' value+=Literal)* '}'
+;
+
+Literal:
+	{intLITERAL}  value=INTEGER      |
+	{realLITERAL} value=DECIMAL 	 |
+	{boolLITERAL} value=BOOLEAN 	 |
+	{strLITERAL}  value=STRING 	   	 |
+	{enumLITERAL} value=ENUM_ELEMENT |
+	{bitLITERAL}  value=BIT          |
+	{hexLITERAL}  value=HEX          |		  
+	{unknowLITERAL}  value='?'
+;
+
+
+/*
+ * Instructions declaration
+ */
+ 
+STATEMENT:
+	AbstractVAR_DECL     |
+	IF_STATEMENT		 | 
+	LOOP_STATEMENT       | 
+	ASSIGN_STATEMENT     | 
+	ERROR_STATEMENT      
+;
+
+IF_STATEMENT:
+	'if''(' ifCond=EXPRESSION ')' '{' ifst += STATEMENT* '}'
+	 (=> 'else' '{' elst += STATEMENT* '}')
+;
+
+LOOP_STATEMENT:
+	'loop' '(' loopCond=EXPRESSION')'
+;
+
+ERROR_STATEMENT:
+	'error' {ERROR_STATEMENT} (';')?
+; 
+ 
+ASSIGN_STATEMENT:
+	left= VAR_REF '=' right=EXPRESSION (';')?
+;
+
+VAR_REF:
+	variable=[AbstractVAR_DECL|IDENT]
+;
+
+/*
+ * Expression grammar 
+ */ 
+ 
+EXPRESSION:
+	 OR
+;
+
+OR returns EXPRESSION:
+	 AND ( {OR.left=current} 'or' right=AND )*
+;
+
+AND returns EXPRESSION:
+	 EQUAL_DIFF ( {AND.left=current} 'and' right=EQUAL_DIFF)*
+;
+
+EQUAL_DIFF returns EXPRESSION:
+	COMPARISON ( {EQUAL_DIFF.left=current} op=('==' | '!=') right=COMPARISON)* 
+;
+
+COMPARISON returns EXPRESSION:
+	ADD_SUB ({COMPARISON.left=current} op=('<' | '<=' | '>' | '>=') right=ADD_SUB )*
+;
+
+ADD_SUB returns EXPRESSION:
+	MULT_DIV (({ADD.left=current} '+' | {SUB.left=current} '-') right=MULT_DIV)*
+;
+
+MULT_DIV returns EXPRESSION:
+	PrimaryExpression (({MULT.left=current} '*' | {DIV.left=current} '/') right=PrimaryExpression)*
+;
+
+PrimaryExpression returns EXPRESSION:
+	'(' EXPRESSION ')' | {NOT} 'not' exp=PrimaryExpression | Atomic
+;
+
+Atomic returns EXPRESSION:
+	 {intConstant}  value=INTEGER      | 
+	 {realConstant} value=DECIMAL      | 
+	 {strConstant}  value=STRING   	   | 
+	 {enumConstant} value=ENUM_ELEMENT |
+	 {boolConstant} value=BOOLEAN 	   |
+	 {bitConstant}	value=BIT   	   | 
+	 {hexConstant}	value=HEX		   |
+	 {VarExpRef}    vref=[AbstractVAR_DECL|IDENT] 
+;
+
+DECIMAL returns ecore::EDouble :
+	('-')? INT ('.' INT)
+;
+
+INTEGER returns ecore::EInt: 
+	('-')? INT
+;
+
+/*
+ * terminals declaration
+ */
+ 
+terminal ENUM_ELEMENT returns ecore::EString:
+	'_'IDENT
+;
+
+terminal BOOLEAN returns ecore::EBoolean:
+	'true' | 'false'
+;
+
+terminal HEX returns ecore::EString:
+	'0x' ('0'.. '9' | 'A' .. 'F')+
+;
+
+terminal IDENT returns ecore::EString:
+	('a'..'z'|'A'..'Z') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*
+;
+
+terminal BIT returns ecore::EString:
+	'0b'('0' | '1')+ 
+;
