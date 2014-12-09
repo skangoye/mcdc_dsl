@@ -32,47 +32,57 @@ import static extension org.xtext.type.provider.ExpressionsTypeProvider.*
 import org.xtext.moduleDsl.ASSIGN_STATEMENT
 import org.xtext.moduleDsl.CST_DECL
 
+
 class StaticSingleAssignment2 {
 	
+	val private static final constTypePred = "c_" //Must precede constant types
+	
+	
+	/**
+	 * Perform a SSA notation form, on module paths variables names, and returns a map that maps an expression identifier( and its path ID)
+	 * with the SSA informations associated to that identifier.
+	 */
 	def static staticSingleAssignmentOnPaths(List<List<Triplet<List<String>, List<String>, List<String>>>> modulePaths, MCDC_Statement mcdcStatement){
 		
 		//this map records the SSA expressions along the different paths.
 		//the key of the map is an unique 'identifier' computed as follows: 'key = conditionIdent + @ + pathIdent'
-		//the associated object is a couple where the first element is tha assignment variable with SSA ident, and the second
-		//the expression in SSA that is assigned to the assignement variable
+		//the associated object is a couple where the first element is that assignment variable with SSA ident, and the second,
+		//the expression in SSA that is assigned to the assignment variable
 		val ssaExpressionsMap = new HashMap<String, Couple<String, BinaryTree<Triplet<String, String, String>>>>
 		
 		modulePaths.forEach[ 
-			path, pathID | 
-			val defList = new ArrayList<Couple<String, String>>
+			
+			path, pathID | val defList = new ArrayList<Couple<String, String>> //definition list
+			
 			path.forEach[ 
 				
-				subPath | 
+				subPath | //Triplet < var_names, MCDC_values, identifiers>
 				
-				val identifier = subPath.third.extractIdentifier
-				val identifierIndex = subPath.third.extractIdentIndex
-				val expression = mcdcStatement.getExpression(identifier, identifierIndex)
+				val identifier = subPath.third.extractIdentifier 
+				val identifierIndex = subPath.third.extractIdentIndex // X, N, T or F
+				val expression = mcdcStatement.getExpression(identifier, identifierIndex) //get the right expression
 				
-				val assignVar = subPath.first.get(0) //first element of the list
-				val assignCouple = new Couple(assignVar, "0")  ////////////////
-				if(assignVar == "*") {assignCouple.setSecond("")}//handling "*" case
+				val assignVar = subPath.first.get(0) //first element of the list represents assignment variable
+				val assignCouple = new Couple(assignVar, "0")  //assignment var with SSA index '0' 
 				
-				val bt = expression.toBTExpression() 
-				defList.updateBT(bt)
-				defList.addBtVariables(bt)
+				if(assignVar == "*") { assignCouple.setSecond("") } //case where there is no assignment
+				
+				val bt = expression.toBTExpression() //transform to Binary Tree structure
+				defList.updateBT(bt) //update Binary Tree SSA indexes
+				defList.addBtVariables(bt) //add new variables defined in bt and not in defList
 
-				defList.updateAssignCouple(assignCouple)
-				defList.updateDefList(assignCouple)
+				defList.updateAssignCouple(assignCouple) //update SSA index of the assignment variable
+				defList.updateDefList(assignCouple) //update defList with the above new assigned variable
 				
-				subPath.updateSubPath(assignCouple, bt, identifierIndex)
+				subPath.updateSubPath(assignCouple, bt, identifierIndex)//
 				
-				val ssaName = nameWithIndex(assignCouple)				
-//				val assignType = assignTriplet.third
+				val ssaName = nameWithIndex(assignCouple) //get variable name in SSA form: (var_name + SSA_index)				
 				
-				//add to the map only expressions that are not present yet 
+				//in fact, given an expression identifier, its SSA variables names may be different according to the path they come from
+				// => so we add path ID to the expression identifier
 				if(identifierIndex == "N"){
 					val identwithIndex = (identifier + identifierIndex)
-					val identAtPathID = identwithIndex.addPathID(pathID.toString)
+					val identAtPathID = identwithIndex.addPathID(pathID.toString) 
 					if(!ssaExpressionsMap.containsKey(identAtPathID)){ val put = ssaExpressionsMap.put(identAtPathID, new Couple(ssaName, bt)) }
 				}
 				else{
@@ -84,15 +94,20 @@ class StaticSingleAssignment2 {
 		]//forEach
 
 		return ssaExpressionsMap
-	}
+	
+	}//staticSingleAssignmentOnPaths
 	
 	
-	def static private void updateBT(List<Couple<String, String>> previousDefList, BinaryTree<Triplet<String, String, String>> bt){
-		if(!bt.isEmpty()){ 
-			if(bt.isLeaf){
-				for(defCouple: previousDefList){
-					if (bt.value.first == defCouple.first) {
-						//set bt value with the assign couple value
+	/**
+	 * Update Binary tree SSA indexes with the list that contains updated variable SSA indexes
+	 */
+	def static private void updateBT(List<Couple<String, String>> previousDefList, BinaryTree<Triplet<String,String, String>> bt){
+		
+		if(!bt.isEmpty()){ //bt is not empty
+			if(bt.isLeaf){//leaf => variables or constant
+				for(defCouple: previousDefList){ //couple< var_name, SSA_index> 
+					if (bt.value.first == defCouple.first) {//var names match each other
+						//set leaf variable SSA index with the one in the definition list
 						bt.value.setSecond(defCouple.second)
 						return
 					}
@@ -103,16 +118,21 @@ class StaticSingleAssignment2 {
 				previousDefList.updateBT(bt.right)
 			}		
 	   }//not empty
-	}
+	
+	}//updateBT
 
-
-	def static private void addBtVariables(List<Couple<String, String>> defList, BinaryTree<Triplet<String, String,String>> bt){
-		if(!bt.isEmpty()){ 
-			if(bt.isLeaf){
-				val index = bt.value.second
+	
+	/**
+	 * Add in the definition list (DefList), all variables that are present in the Binary tree, and not in the definition list. 
+	 */
+	def static private void addBtVariables(List<Couple<String, String>> defList, BinaryTree<Triplet<String,String,String>> bt){
+		
+		if(!bt.isEmpty()){ //bt is not empty
+			if(bt.isLeaf){ //leaf => variables or constant
+				val index = bt.value.second //SSA index
 				if ( index != "") {//variable
 					val variable = bt.value.first
-					if(!defList.hasElement(variable)){ //defList doesn't contain variable 'variable'
+					if(!defList.hasElement(variable)){ //defList doesn't contain the variable
 						defList.add( new Couple(variable, index) )
 					}
 				}
@@ -122,100 +142,91 @@ class StaticSingleAssignment2 {
 				defList.addBtVariables(bt.right)
 			}
 		}		
-	}
+	
+	}//addBtVariables
 	
 	
-	def static private void updateAssignCouple(List<Couple<String, String>> previousDefList, Couple<String,String> assignCouple)
-	{
+	/**
+	 * Update the SSA index of an assignment variable. Typically, if a variable is assigned its SSA index is incremented 
+	 */
+	def static private void updateAssignCouple(List<Couple<String, String>> previousDefList, Couple<String,String> assignCouple){
+		
 		val assignVar = assignCouple.first
 		
-		if(assignVar != "*"){
+		if(assignVar != "*"){//new assignment
 			previousDefList.forEach[ 
-				value | if (value.first == assignVar){ 
-					val newIndex = (value.second.parseInt + 1)
+				defCouple | if (defCouple.first == assignVar){ //the variable being assigned is already in defList
+					val newIndex = (defCouple.second.parseInt + 1) //increment its SSA index
 					assignCouple.setSecond(newIndex.toString)
 					return
 				}
 			]//forEach
-			
-			//here, that means that assignVar is not in DefList	
-//			val btValue = assignVar.getValueInBT(bt)
-//			
-//			if(btValue != null){//there is a value in bt that is redifined by assignVar
-//				val newIndex = (btValue.second.parseInt + 1)
-//				assignCouple.setSecond(newIndex.toString)
-//			}
-//			else{
-				//keep assigvar values
-//			}
 		}
-		else{// "*"
+		else{// assignVar == "*"
 			//nothing to do
 		}
 		
-	}
+	}//updateAssignCouple
 	
 	
+	/**
+	 * Update the definition list with the new assigned variable SSA index
+	 */
 	def static private void updateDefList(List<Couple<String, String>> defList, Couple<String,String> assignCouple){
 		
 		val assignVar = assignCouple.first
-		if(assignVar != "*"){
+		
+		if(assignVar != "*"){//
 			defList.forEach[ 
-				defCouple | if (defCouple.first == assignVar){ 
-				defCouple.setSecond(assignCouple.second)
-				return
+				defCouple | 
+				if (defCouple.first == assignVar){ //variable name is already in defList
+					// => update its SSA index in the defList 
+					defCouple.setSecond(assignCouple.second)
+					return
 				}
 			]//forEach
+			
+			//variable name is not in defList => Add new var name and its SSA index
 			defList.add( new Couple(assignCouple.first, assignCouple.second))
 		}
-	}
+	
+	}//updateDefList
 	
 	
+	/**
+	 * Substitute subPath variable names with theirs corresponding SSA names 
+	 */
 	def static void updateSubPath(Triplet<List<String>, List<String>, List<String>> subPath, Couple<String,String> assignCouple, BinaryTree<Triplet<String,String,String>> bt, String identifierIndex ) {
 		
 		if(identifierIndex == "N"){ //bt represents a non boolean expression 
-			subPath.first.set(0, nameWithIndex(assignCouple)) //replace assign var with its ssa var name
-			subPath.second.set(0, bt.stringRepr)
+			subPath.first.set(0, nameWithIndex(assignCouple)) //replace assignment var with its SSA var name
+			subPath.second.set(0, bt.stringRepr) //replace assignment expression variables names with theirs corresponding SSA names
 		}
-		else{//bt represents a non boolean expression 
-			val boolVarInBt =bt.boolVarsInBT
+		else{//bt represents a boolean expression 
+			val boolCondsInBt =bt.boolConditionsInBT //Boolean conditions in the Binary tree bt
 			if(identifierIndex == "X"){
-				boolVarInBt.add(0, nameWithIndex(assignCouple))// 
-				subPath.setFirst(boolVarInBt) //
+				boolCondsInBt.add(0, nameWithIndex(assignCouple))// add assignment SSA var name to Boolean Conditions list
+				subPath.setFirst(boolCondsInBt) //replace variables names with the SSA ones
 			}
 			else{ // T or F
 				if(identifierIndex == "T" || identifierIndex == "F"){
-					boolVarInBt.add(0, "*")// first element is a star
-					subPath.setFirst(boolVarInBt) //
+					boolCondsInBt.add(0, "*")// first element is a star i.e no assignment variable
+					subPath.setFirst(boolCondsInBt) //replace variables names with the SSA ones
 				}
 				else{
 					throw new Exception("Unknown identifier index")
 				}
 			}
-		}
+		}			
 		
+	} //updateSubPath
 		
-		
-		
-	}
 	
-//	def static private Couple<String, String> getValueInBT(String assignVar, BinaryTree<Couple<String, String>> bt){
-//		if(!bt.isEmpty()){ 
-//			if(bt.isLeaf){
-//				if (bt.value.first == assignVar) {
-//					return bt.value
-//				}
-//			}
-//			else{//recursive call on its siblings
-//				assignVar.getValueInBT(bt.left)
-//				assignVar.getValueInBT(bt.right)
-//			}
-//		}		
-//	}
-	
-	
-	
+	/**
+	 * Return the DSL expression associated with (identifier + identifier index) 
+	 */
 	def static private EXPRESSION getExpression( MCDC_Statement mcdcStatement, String identifier, String identifierIndex){
+		
 		if(identifierIndex == "N"){
 			return mcdcStatement.getNonBoolExpression(identifier.parseInt)
 		}
@@ -224,23 +235,29 @@ class StaticSingleAssignment2 {
 				return mcdcStatement.getBoolExpression(identifier.parseInt)
 			}
 			else{
-				throw new UnsupportedOperationException("unknown identifier index")
+				throw new UnsupportedOperationException(" ##### unknown identifier index ##### ")
 			}
 		}
-	}
+	
+	}//getExpression
 	
 	/**
-	 * Transforms a module_dsl expression into a new binary tree expression
+	 * Transform a module_dsl expression into a new binary tree structure (BinaryTree implementation)
+	 * The value of the Binary tree is a triplet where the first parameter 
+	 * represents either the operator name or a value (in the case that the expression being translated is a constant).
+	 * The second parameter represents the SSA index and the third, the type of the operator, variable or constants. 
+	 * constants' type are preceded with "c_" pattern
 	 */
-	def static private BinaryTree< Triplet<String,String,String> > toBTExpression(EXPRESSION expression){
+	def static private BinaryTree< Triplet<String,String,String> > toBTExpression(EXPRESSION expression){	
 		val tmpTree = new BinaryTree<Triplet<String,String,String>>() //new empty tree
 		toBTExpression(expression, tmpTree)
-//		System.out.println()
+		
 		return tmpTree
 	}
 	
+	
 	/**
-	 * toBTExpression's private method
+	 * toBTExpression's private method. 
 	 */
 	def private static void toBTExpression(EXPRESSION expression, BinaryTree<Triplet<String,String,String>> bt){
 		switch(expression){
@@ -299,31 +316,32 @@ class StaticSingleAssignment2 {
 			}
 			
 			VarExpRef:{
-				//only variables are initialized with 0
 				val abstractVar = expression.vref
-				if(abstractVar instanceof CST_DECL){//constant
+				if(abstractVar instanceof CST_DECL) {//constant
 					val const = (abstractVar as CST_DECL)
-					val type = "c_" + expression.typeFor //to be considered as constant
+					val type = constTypePred + expression.typeFor //must conform to constants type rule
 					bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(const.value.literalValue, "", type)))
 				}
 				else{//variable
+					//set the SSA index to 0
 					bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(abstractVar.name, "0", expression.typeFor)))
 				}			
 			}
 			
-			intConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", "c_int")))
+			intConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", constTypePred + expression.typeFor)))
 	  		
-	  		realConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", "c_real")))
+	  		realConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", constTypePred + expression.typeFor)))
 	  		
-	  		strConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", "c_str")))
+	  		strConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", constTypePred + expression.typeFor)))
 	  		
-	  		enumConstant: {
+	  		enumConstant: {//check enumConstant's parent
+	  			
 	  			val comparator = expression.getContainerOfType(EQUAL_DIFF)
 	  			val assignment = expression.getContainerOfType(ASSIGN_STATEMENT)
 	  			
 	  			var enumVarName = ""
 	  			
-	  			if(comparator != null){
+	  			if(comparator != null){ //parent is a comparator, either "==" or "!="
 	  				var enumVariable = comparator.left	  			
 	  				if(enumVariable != expression){	enumVarName = (enumVariable as VarExpRef).vref.name }
 	  				else{ enumVarName = (comparator.right as VarExpRef).vref.name  }
@@ -336,46 +354,52 @@ class StaticSingleAssignment2 {
 	  			}
 	  			
 	  			val enumVarName_Plus_EnumValue = enumVarName + "@" + expression.value.toString
-	  			bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(enumVarName_Plus_EnumValue, "", "c_enum")))
+	  			
+	  			bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(enumVarName_Plus_EnumValue, "", constTypePred + expression.typeFor)))
 	  		}
 	  		
-	  		boolConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", "c_bool")))
+	  		boolConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", constTypePred + expression.typeFor)))
 	  		
-	  		bitConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", "c_bit")))
+	  		bitConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", constTypePred + expression.typeFor)))
 	  		
-	  		hexConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", "c_hex")))
+	  		hexConstant: bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet(expression.value.toString, "", constTypePred + expression.typeFor)))
 		}
 	}//toBTExpression
 	
-	def static private boolVarsInBT(BinaryTree<Triplet<String,String,String>> bt){
-		val listOfBoolVars = new ArrayList<String>
-		boolVarsInBT(bt, listOfBoolVars)
-		return listOfBoolVars
-	}
 	
-	def static private  void boolVarsInBT(BinaryTree<Triplet<String,String,String>> bt, List<String> list){
+	/**
+	 * Return a list containing all conditions that get involved in the boolean expression,
+	 * represented by the Binary tree
+	 */
+	def static private boolConditionsInBT(BinaryTree<Triplet<String,String,String>> bt){
+		val listOfBoolVars = new ArrayList<String>
+		boolConditionsInBT(bt, listOfBoolVars)
+		return listOfBoolVars
+	}//boolConditionsInBT
+	
+	def static private  void boolConditionsInBT(BinaryTree<Triplet<String,String,String>> bt, List<String> list){
 		val btvalue = bt.value
 		val operator = btvalue.first
 		val index = btvalue.second
 		
 		switch(operator){
 			case "OR": {
-				bt.left.boolVarsInBT(list)
-				bt.right.boolVarsInBT(list)
+				bt.left.boolConditionsInBT(list)
+				bt.right.boolConditionsInBT(list)
 			}
 				
 			case "AND": {
-				bt.left.boolVarsInBT(list)
-				bt.right.boolVarsInBT(list)
+				bt.left.boolConditionsInBT(list)
+				bt.right.boolConditionsInBT(list)
 			}
 			
 			case "XOR": {
-				bt.left.boolVarsInBT(list)
-				bt.right.boolVarsInBT(list)
+				bt.left.boolConditionsInBT(list)
+				bt.right.boolConditionsInBT(list)
 			}
 			
 			case "NOT": {
-				bt.right.boolVarsInBT(list)
+				bt.right.boolConditionsInBT(list)
 			}
 			
 			case "==": {
@@ -408,10 +432,60 @@ class StaticSingleAssignment2 {
 				}
 			}
 		}
-	}
+	}//boolConditionsInBT
 	
 	
-//	def static private void printModuleSSA(List<List< Triplet< Couple<String,String>, BinaryTree<Couple<String,String>>, String> >> moduleSsa){
+	/**
+	 * Return a string representation of the expression represented over the Binary tree
+	 */
+	def static String stringRepr(BinaryTree<Triplet<String,String,String>> bt){
+		if(!bt.isEmpty()){
+			if(!bt.isLeaf()){
+				"(" + bt.left.stringRepr + bt.value.first + bt.right.stringRepr +")"
+			}
+			else{ //leaf
+				val btValue = bt.value
+				return nameWithIndex(new Couple(btValue.first, btValue.second))
+			}//leaf
+		}
+	}//stringRepr
+	
+	
+	/**
+	 * Check whether or not, a given variable name is in the list.
+	 */
+	def static private boolean hasElement(List<Couple<String, String>> list, String variableName){
+		for(elem: list){//the first parameter of a list element is a variable name
+			val elemVarName = elem.first
+			if(elemVarName == variableName){ return true }
+		}
+		return false
+	}//hasElement
+	
+	
+	/**
+	 * Return a variable SSA name form: (var_name + "separator" + SSA_index + "separator"). The separator is represented
+	 * by the pipe symbol "|" 
+	 */
+	def static private String nameWithIndex( Couple<String,String> value){
+		val ident = value.second
+		if(ident != ""){
+			return value.first + "|" + value.second + "|"
+		}
+		else{
+			return value.first
+		}
+	}//nameWithIndex
+	
+	
+	/**
+	 * Add for each identifier the path ID where it comes from
+	 */
+	def static private String addPathID(String ident, String pathID){
+		return ident + "@" + pathID
+	}//addPathID
+	
+	//	def static private void printModuleSSA(List<List< Triplet< Couple<String,String>, BinaryTree<Couple<String,String>>, String> >> moduleSsa){
 //		moduleSsa.forEach[ 
 //			list | System.out.println
 //			System.out.println("{")
@@ -426,40 +500,5 @@ class StaticSingleAssignment2 {
 //			
 //		]
 //	}
-	
-	def static String stringRepr(BinaryTree<Triplet<String,String,String>> bt){
-		if(!bt.isEmpty()){
-			if(!bt.isLeaf()){
-				"(" + bt.left.stringRepr + bt.value.first + bt.right.stringRepr +")"
-			}
-			else{ //leaf
-				val btValue = bt.value
-				return nameWithIndex(new Couple(btValue.first, btValue.second))
-			}//leaf
-		}
-	}
-	
-	def static private boolean hasElement(List<Couple<String, String>> list, String variable){
-		for(elem: list){
-			val elemVar = elem.first
-			if(elemVar == variable){ return true}
-		}
-		return false
-	}
-	
-	def static private String nameWithIndex( Couple<String,String> value){
-		val ident = value.second
-		if(ident != ""){
-			return value.first + "|" + value.second + "|"
-		}
-		else{
-			return value.first
-		}
-	}
-	
-	def static private String addPathID(String ident, String pathID){
-		return ident+ "@" + pathID
-	}
-	
-	
-}
+
+}//class

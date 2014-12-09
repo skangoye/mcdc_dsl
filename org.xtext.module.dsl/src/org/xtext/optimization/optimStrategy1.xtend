@@ -12,6 +12,13 @@ import java.util.Map
 
 class optimStrategy1 {
 	
+		
+/********************************************************************************************************************************
+ * 
+ * Test data optimization implementation
+ * 
+ *********************************************************************************************************************************/	
+ 
 	/**
 	 * Given a set of MC/DC tests data, this method returns a subset of these MC/DC tests data with the same amount of MC/DC
 	 * coverage of the module.

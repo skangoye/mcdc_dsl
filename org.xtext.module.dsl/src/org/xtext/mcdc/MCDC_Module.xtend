@@ -26,13 +26,13 @@ import org.xtext.helper.Couple
 
 class MCDC_Module {
 	
-	val optim = new optimStrategy1()
-	val coverage = new Module_Coverage()
-	
+
 	def mcdcOfModule(MODULE_DECL module){
 		
 		val mcdcStatement = new MCDC_Statement() //new MCDC_Statement instance
-		
+		val optim = new optimStrategy1() // new optimization instance
+		val coverage = new Module_Coverage() //new coverage instance
+	
 		val modulePaths = enumerateModulePaths(module, mcdcStatement).copyListOfList //module execution paths
 		
 		val feasiblePaths = modulePaths.getFeasiblePaths(module, mcdcStatement) //get feasible execution paths

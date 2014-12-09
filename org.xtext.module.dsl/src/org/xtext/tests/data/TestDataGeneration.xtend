@@ -19,16 +19,16 @@ import static extension org.xtext.utils.DslUtils.*
 
 class TestDataGeneration {
 	
-	val private static intVars = new HashMap<String, Object> //solver integer vars
-	val private static doubleVars = new HashMap<String, Object> //solver double vars
-	val private static dslInVars = new HashMap<String, Object> //dsl interface in vars
-	val private static dslOutVars = new HashMap<String, Object> //dsl interface out vars
+	val private static intVars = new HashMap<String, Object> 		//solver integer vars
+	val private static doubleVars = new HashMap<String, Object> 	//solver double vars
+	val private static dslInVars = new HashMap<String, Object> 		//dsl interface in vars
+	val private static dslOutVars = new HashMap<String, Object> 	//dsl interface out vars
 	
-	val private static final splitPattern = "\\|"
-	val private static final IMIN = -100 //min
-	val private static final IMAX = 100
-	val private static final DMIN = -100.0
-	val private static final DMAX = 100.0
+	val private static final splitPattern = "\\|" 	//split pattern
+	val private static final IMIN = -100 			//minimum int variable
+	val private static final IMAX = 100 			//maximum int variable
+	val private static final DMIN = -100.0 			//minimum double variable
+	val private static final DMAX = 100.0 			//maximum int variable
 	
 	def static testDataGen(MODULE_DECL module, Map<List<Couple<String,String>>, String> testsSuitePathIdMap, Map<String,List<String>> pathIdentsSequences,
 		Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> expression)
@@ -101,25 +101,24 @@ class TestDataGeneration {
 	}
 	
 	def static solverTranslator(ProblemCoral pb, List<String> pathIdentSeq, List<Couple<String, String>> testSuite, Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> exprMap, String pathID) {
+		
 		pathIdentSeq.forEach[
+			
 			pathCondID | val condLastChar = pathCondID.getLastChar
-//			System.out.println("pathCondID:" + pathCondID)
 							
 			if(condLastChar == "N"){//Non boolean expression	
+				
 				val identAtPathID = pathCondID.addPathID(pathID)	
 				val expCouple = exprMap.get(identAtPathID)
 				val ssaName = expCouple.first  //assignment variable
 				val btExp = expCouple.second
 				val type = btExp.value.third //As btExp is not a bool expression => assignment variable type = btExp.type 
 				
-//				System.out.println
-//				System.out.println("######### ssaName " + ssaName)
-//				System.out.println
-				
 				val solverVar = makeVar(pb, ssaName, type)
 				val solverBtExp = pb.toSolverExpression(btExp, true)
 				val constraint = pb.eq(solverVar, solverBtExp) //assignment constraint: solverVar == solverBtExp
 				pb.post(constraint)
+			
 			}
 			else{// T or F or X
 				
@@ -170,6 +169,7 @@ class TestDataGeneration {
 		
 		throw new Exception("#### Associated sequence not found ####")
 	}
+	
 	
 	def private static Object makeVar(ProblemCoral pb, String ssaName, String type) {
 		
