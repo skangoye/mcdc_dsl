@@ -62,10 +62,5 @@ class ModuleDslGenerator implements IGenerator {
 			
 		'''
 	}
-	
-	def compile(IF_STATEMENT instr){
-		val mcdc = new MCDC_Statement
-		mcdc.mcdcIfStatement(instr)
-	}
 
 }//ModuleDslGenerator

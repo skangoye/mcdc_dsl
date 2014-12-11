@@ -26,17 +26,17 @@ class MCDC_Statement {
 	
 	val mcdcOfDecision= new MCDC_Of_Decision()
 	
-	val static final separator = "#"
+	val private static final separator = "#"
 	
 	var boolIdentifier = -1 //Used for boolean expressions identification
 	var notBoolIdentifier = -1 //Used for non-boolean expressions identification
 	
 	val listOfMcdcValues = new ArrayList<List<String>> //list that records the MCDC values of the different Boolean expressions
-	
 	val listOfBooleanExpression = new ArrayList<EXPRESSION> //list that records the different boolean expressions
 	val listOfNonBooleanExpression = new ArrayList<EXPRESSION> //list that records the different non-boolean expressions
 	val listOfVarInBoolExpression = new ArrayList<List<String>> //list that records the variables involved in all boolean expressions 
 	val listOfVarInNonBoolExpression = new ArrayList<List<String>> //list that records the variables involved in all non-boolean expressions
+	
 	
 	/** boolIdentifier incrementing
 	 */
@@ -44,17 +44,20 @@ class MCDC_Statement {
 		boolIdentifier = boolIdentifier + 1
 	}
 	
+	
 	/**notBoolIdentifier incrementing
 	 */
 	def incrNonBoolIdentifier(int identifier){
 		notBoolIdentifier = notBoolIdentifier + 1
 	}
 	
+	
 	/**return all the expressions' 
 	 */
 	def getAllExpressionsMcdcValues(){
 		return listOfMcdcValues
 	}
+	
 	
 	/**return all boolean expressions' 
 	 */
@@ -65,11 +68,14 @@ class MCDC_Statement {
 	def getNonBooleanExpressions(){
 		return listOfNonBooleanExpression
 	}
+	
+	
 	/** return the MCDC values of the expression stored at the index identifier of the list listOfMcdcValues
 	 */
 	def getMcdcValues(int identifier) {
 		return listOfMcdcValues.get(identifier)
 	}
+	
 	
 	/**return the boolean expression stored at the index identifier of the list listOfBooleanExpression
 	 */ 
@@ -77,17 +83,20 @@ class MCDC_Statement {
 		return listOfBooleanExpression.get(identifier)
 	}
 	
+	
 	/**return the non-boolean expression stored at the index identifier of the list listOfNonBooleanExpression
 	 */ 
 	def getNonBoolExpression(int identifier){
 		return listOfNonBooleanExpression.get(identifier)
 	}
 	
+	
 	/**return the variables involved in the boolean expression stored at the index identifier of the list listOfVarInBoolExpression
 	 */
 	def getVarInBoolExpression(int identifier){
 		return listOfVarInBoolExpression.get(identifier)
 	}
+	
 	
 	/**return the variables involved in the non-boolean expression stored at the index identifier of the list listOfVarInNonBoolExpression
 	 */
@@ -118,6 +127,7 @@ class MCDC_Statement {
 	def mcdcErrorStatement(ERROR_STATEMENT statement){
 		return null
 	}
+	
 	
 	/**
 	 * return a MCDC triplet of the variable
@@ -177,6 +187,7 @@ class MCDC_Statement {
 			return new Triplet(varInExpression, mcdcValues, subIdentifier)
 		}
 	}//mcdcVarStatement
+	
 	
 	/**
 	 * return a MCDC triplet of the assignment statement
@@ -238,6 +249,7 @@ class MCDC_Statement {
 		}
 	}//mcdcAssignStatement
 	
+	
 	/**
 	 * return a MCDC triplet of a IF-THEN-ELSE statement
 	 */
@@ -285,7 +297,8 @@ class MCDC_Statement {
 		return result
 
 	}//mcdcIfStatement
-		
+
+
 	/**
 	 * Computes the MCDC of the IF-THEN-ELSE sub-instructions
 	 */	
@@ -359,6 +372,7 @@ class MCDC_Statement {
 			result.add(list)
 		}
 	}//mcdcOfConditional
+	
 	
 	/**
 	 * Merge the different statements' MCDC values together, according to different constraints: execution paths, variables names
@@ -588,6 +602,7 @@ class MCDC_Statement {
 		return new Triplet (concatVariables, concatValues, concatIdents)
 	}//concatWithConstraints
 	
+	
 	/**
 	 * Verify the coherence of variables. For instance, a variable should keep its value unchanged, unless it is modified
 	 */
@@ -603,7 +618,7 @@ class MCDC_Statement {
 		return true
 	}//meetConstraints
 	
-	//////////////////////////////////////////////////////
+	
 	/**
 	 * This method break the concatenated MCDC results down, in order to measure the MCDC coverage amount of each boolean expression
 	 */
@@ -673,6 +688,7 @@ class MCDC_Statement {
 		
 		return splitMergedValuesResults
 	}//splitConcatenatedValues
+	
 	
 	/**
 	 * Provides a MCDC not coverage verdict of each boolean expression. Typically, for each boolean expression it relies on 
@@ -835,6 +851,7 @@ class MCDC_Statement {
 	return listOfEquations
 	
 	}//buildEquations
+	
 	
 	 /**
 	  * Filter the values that takes part in the MCDC values of the boolean expression at index 'identifier'

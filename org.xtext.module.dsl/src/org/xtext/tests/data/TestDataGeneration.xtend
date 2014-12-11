@@ -24,49 +24,35 @@ class TestDataGeneration {
 	val private static dslInVars = new HashMap<String, Object> 		//dsl interface in vars
 	val private static dslOutVars = new HashMap<String, Object> 	//dsl interface out vars
 	
-	val private static final splitPattern = "\\|" 	//split pattern
-	val private static final IMIN = -100 			//minimum int variable
-	val private static final IMAX = 100 			//maximum int variable
-	val private static final DMIN = -100.0 			//minimum double variable
-	val private static final DMAX = 100.0 			//maximum int variable
+	val private static final splitPattern = "\\|" 					//split pattern
+	val private static final IMIN = -100 							//minimum int variable
+	val private static final IMAX = 100 							//maximum int variable
+	val private static final DMIN = -100.0 							//minimum double variable
+	val private static final DMAX = 100.0 							//maximum int variable
 	
-	def static testDataGen(MODULE_DECL module, Map<List<Couple<String,String>>, String> testsSuitePathIdMap, Map<String,List<String>> pathIdentsSequences,
+	
+	/**
+	 * 
+	 */
+	def static testDataGen(MODULE_DECL module, Map<List<Couple<String,String>>, String> mapTestSequencesAndIdents, Map<String,List<String>> pathIdentsSequences,
 		Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> expression)
 	{
-		val solutions = new HashMap< List<Couple<String,String>> , List<Triplet<String,String,String>>>
+		val solutions = new HashMap< List<Couple<String,String>>, List<Triplet<String,String,String>>>
 		
-		//set dslInVars and dslOutVars
-		val listOfVariables = module.interface.declaration.filter(VAR_DECL)
-		listOfVariables.forEach[ 
-			variable | val name = variable.name
-			val flow = variable.flow.flow
-			if (flow == "in"){
-				dslInVars.put(name, variable)
-			}
-			else{
-				if (flow == "out"){
-					dslOutVars.put(name, variable)
-				}
-				else{
-					if (flow == "inout"){
-						dslInVars.put(name, variable)
-//						dslOutVars.put(name, variable)				
-					}
-				}
-			}
-			
-		]//forEach
+		//put dsl input vars in dslInVars and dsl output vars in dslOutVars
+		module.recordDslVariables(dslInVars, dslOutVars)
 		
-		testsSuitePathIdMap.keySet.forEach[ 
+		mapTestSequencesAndIdents.keySet.forEach[ 
 			
-			testSuite | val pathID = testsSuitePathIdMap.get(testSuite)
-//			System.out.println("pathID:" + pathID) ///
-			val pathIdentSeq = pathIdentsSequences.get(pathID)
+			testSequences | val pathID = mapTestSequencesAndIdents.get(testSequences)
+//			System.out.println("pathID:" + pathID)
+			val pathIdentSeq = pathIdentsSequences.get(pathID) //idents sequences along the path #pathID
 //			System.out.println("pathIdentsSequences:" + pathIdentSeq.toString)
-			ProblemCoral.configure
+			
+			ProblemCoral.configure	//create the solver
 			val pb = new ProblemCoral()
 			
-			solverTranslator(pb, pathIdentSeq, testSuite, expression, pathID)
+			pb.toSolverTranslator(pathIdentSeq, testSequences, expression, pathID)
 			
 			val new_dslInVars = dslInVars.ssaVarsNamesWithDslVars(intVars, doubleVars)
 			val new_dslOutVars = dslOutVars.ssaVarsNamesWithDslVars(intVars, doubleVars)
@@ -83,7 +69,7 @@ class TestDataGeneration {
 				
 				inSolutions.addAll(outSolutions)
 				
-				solutions.put(testSuite, inSolutions)
+				solutions.put(testSequences, inSolutions)
 			//	solutions.add(outSolutions)
 
 			}//solve
@@ -100,55 +86,56 @@ class TestDataGeneration {
 		return solutions
 	}
 	
-	def static solverTranslator(ProblemCoral pb, List<String> pathIdentSeq, List<Couple<String, String>> testSuite, Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> exprMap, String pathID) {
+	
+	/**
+	 * Translate a SSA expression into the Coral Solver expression
+	 */
+	def static toSolverTranslator(ProblemCoral pb, List<String> pathIdentSeq, List<Couple<String, String>> testSequences, Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> ssaExprMap, String pathID) {
 		
 		pathIdentSeq.forEach[
 			
 			pathCondID | val condLastChar = pathCondID.getLastChar
 							
-			if(condLastChar == "N"){//Non boolean expression	
+			if(condLastChar == "N"){//NonBoolean expression	
 				
-				val identAtPathID = pathCondID.addPathID(pathID)	
-				val expCouple = exprMap.get(identAtPathID)
-				val ssaName = expCouple.first  //assignment variable
-				val btExp = expCouple.second
-				val type = btExp.value.third //As btExp is not a bool expression => assignment variable type = btExp.type 
+				val identAtPathID = pathCondID.addPathID(pathID) //'pathCondID + @ + pathID' is a key of SSA expressions map	
+				val expCouple = ssaExprMap.get(identAtPathID) //SSA form of the expression having the ident 'pathCondID' in the path #pathID
+				val ssaName = expCouple.first  //SSA assignment variable of the expression having the ident 'pathCondID'
+				val btExp = expCouple.second //SSA form of the expression having the ident 'pathCondID'
+				val type = btExp.value.third //Since btExp is not a bool expression => assignment variable type = btExp.type 
 				
-				val solverVar = makeVar(pb, ssaName, type)
-				val solverBtExp = pb.toSolverExpression(btExp, true)
+				val solverVar = makeSolverVar(pb, ssaName, type) //make new solver variable sith 
+				val solverBtExp = pb.toSolverExpression(btExp, true) //make new solver expression
 				val constraint = pb.eq(solverVar, solverBtExp) //assignment constraint: solverVar == solverBtExp
-				pb.post(constraint)
+				pb.post(constraint) //add new constraint to the solver
 			
 			}
-			else{// T or F or X
+			else{// T or F or X => Boolean expression
 				
-				val pathCondIDwithoutLast = pathCondID.deleteLastChar
+				val pathCondIDwithoutLast = pathCondID.deleteLastChar 
 				val identAtPathID = pathCondIDwithoutLast.addPathID(pathID)
-				val expCouple = exprMap.get(identAtPathID)
+				val expCouple = ssaExprMap.get(identAtPathID)
 				val btExp = expCouple.second
-				val ssaName = expCouple.first //assignment variable
+				val ssaName = expCouple.first 
 				
-				val results = testSuite.getSequence(pathCondIDwithoutLast)
-				val btBoolVars = btExp.booleanConditions
-				
-//				System.out.println("Results: " + results.toString)
-//				System.out.println
-//				System.out.println("BoolVars: ")
-//				btBoolVars.forEach[bt | System.out.println(" " + bt.stringRepr)]
-//				System.out.println
-				
-				btBoolVars.forEach[
-					boolExp, i | val outcome =  results.get(i + 1) //results.get(0) is the result of the full expression outcome
-					if (boolExp.isRelationalCondition){ //relational condition
-						val constraint = pb.toSolverExpression(boolExp, outcome.boolValue)
+				val results = testSequences.getSequence(pathCondIDwithoutLast)
+				val btBooleanConditions = btExp.booleanConditions //get all Boolean conditions involved in btExp
+						
+				btBooleanConditions.forEach[
+					
+					boolCondition, i | val outcome =  results.get(i + 1) //results.get(0) is the outcome of the Boolean expression 'boolCondition'
+					
+					if (boolCondition.isRelationalCondition){ //relational condition: (a<3), (c==4), ...
+						val constraint = pb.toSolverExpression(boolCondition, outcome.boolValue)
 						pb.post(constraint)
 					}
-					else{//boolean variable, WARNING: coulfd be a boolean constant TODO:review this section
-						val varName = boolExp.value.first
-						val ssaIndex = boolExp.value.second
+					else{//boolean variable, WARNING: could be a boolean constant TODO:review this section
+						val varName = boolCondition.value.first
+						val ssaIndex = boolCondition.value.second
 						val newName = varName.addSSAIndex(ssaIndex)
 //						System.out.println(" Boolean condition " + newName)
 					}					
+				
 				]//forEach
 				
 				if(ssaName != "*") {
@@ -156,10 +143,17 @@ class TestDataGeneration {
 //					System.out.println(" Boolean condition " + ssaName + "=>" + outcome)
 				} ///TODO: boolean variables must be handled
 			}
+		
 		]//forEach
-	}
 	
+	}//toSolverTranslator
+	
+	
+	/**
+	 *
+	 */
 	def private static getSequence(List<Couple<String, String>> testSeq, String id){
+		
 		for(test: testSeq){
 			val testId = test.second
 			if (testId == id) {
@@ -168,10 +162,14 @@ class TestDataGeneration {
 		}
 		
 		throw new Exception("#### Associated sequence not found ####")
-	}
+	
+	}//getSequence
 	
 	
-	def private static Object makeVar(ProblemCoral pb, String ssaName, String type) {
+	/**
+	 * Return a coral solver variable
+	 */
+	def private static Object makeSolverVar(ProblemCoral pb, String ssaName, String type) {
 		
 		if(type == "int" || type == "enum" || type == "c_int" || type == "c_enum"){
 			if (intVars.containsKey(ssaName)){
@@ -197,8 +195,12 @@ class TestDataGeneration {
 			else{ throw new UnsupportedOperationException(" #### Unsupported operation #### ") }
 		}//else
 	
-	}//makeVar
+	}//makeSolverVar
 	
+	
+	/**
+	 * Transform a relational condition into a Coral solver constraint 
+	 */
 	def static Object toSolverExpression(ProblemCoral pb, BinaryTree<Triplet<String,String,String>> bt, boolean outcome){
 		
 		val btValue = bt.value
@@ -296,26 +298,33 @@ class TestDataGeneration {
 				pb.div(pb.toSolverExpression(bt.left, outcome) , pb.toSolverExpression(bt.right, outcome))
 			}
 		
-			default:{
+			default:{ //variable or constant
+				
 				val nameOrValue = operator
 				val ident = btValue.second
 				val type = btValue.third
 	
 				if(nameOrValue != ""){ 
-					if(ident != "") { 
+					if(ident != "") {//variable 
 						val ssaName = nameOrValue.addSSAIndex(ident) 
 						dealWithVariables(pb, ssaName, type , outcome) 
 					}
-					else{ dealWithConstants(pb, nameOrValue, type, outcome) } 
+					else{ /*constant*/ dealWithConstants(pb, nameOrValue, type, outcome) } 
 				}
+				
 				else{ throw new Exception(" #### Incorrect expression type #### ") }
+			
 			}//default		
 				
 		}	
-	}
+	}//toSolverExpression
 	
 	
+	/**
+	 * Deal with variable creation in the solver
+	 */
 	def static private dealWithVariables(ProblemCoral pb, String ssaVarName, String varType, boolean outcome) {
+		
 		switch(varType){
 			
 			case "int" : {
@@ -369,8 +378,13 @@ class TestDataGeneration {
 			
 			default: throw new RuntimeException(" #### Incorrect operation type #### ")
 		}
-	}
 	
+	}//dealWithVariables
+	
+	
+	/**
+	 * Deal with constants creation in the solver
+	 */
 	def static private dealWithConstants(ProblemCoral pb, String value, String type, boolean outcome) {
 		
 		switch(type){
@@ -383,8 +397,6 @@ class TestDataGeneration {
 				val split = value.split("@")
 				val enumVar = split.get(0)
 				val enumValue = split.get(1)		
-//				System.out.println("enum value: " + enumValue)//////
-//				System.out.println("enum var: " + enumVar)//////
 				return new Integer( getIndexOfEnumValue(enumVar, enumValue))
 			}
 			
@@ -403,13 +415,59 @@ class TestDataGeneration {
 			case "c_str": { throw new UnsupportedOperationException(" #### string not supported yet  #### ") }
 		
 		}
+	
 	}//dealWithConstants
 	
+	
+	/**
+	 * Put dsl interface variables in maps as follows: dsl input variables are stored into the inVarsMap map and
+	 * the output variables are stored into the outVarsMap map. 
+	 */
+	def static recordDslVariables(MODULE_DECL module, Map<String,Object> inVarsMap, Map<String,Object> outVarsMap){
+		
+		val listOfVariables = module.interface.declaration.filter(VAR_DECL) //module interface variables
+		
+		inVarsMap.clear //clear the map
+		outVarsMap.clear //clear the map
+		
+		listOfVariables.forEach[ 
+			
+			variable | val name = variable.name
+			val flow = variable.flow.flow
+			
+			if (flow == "in"){
+				inVarsMap.put(name, variable)
+			}
+			else{
+				if (flow == "out"){
+					outVarsMap.put(name, variable)
+				}
+				else{
+					if (flow == "inout"){
+						inVarsMap.put(name, variable)
+//						dslOutVars.put(name, variable)				
+					}
+				}
+			}			
+		
+		]//forEach
+	
+	}//dslVariables
+	
+	
+	/**
+	 * 
+	 */
 	def private static addSSAIndex(String varName, String index){
 		return varName + "|" + index + "|"
 	}
 	
+	
+	/**
+	 * Return the position of an enumeration value listed in the enumeration variable list 
+	 */
 	def private static int getIndexOfEnumValue(String enumVar, String enumValue) {
+		
 		var index = -1		
 		
 		var variable = dslInVars.get(enumVar) 
@@ -423,15 +481,27 @@ class TestDataGeneration {
 			if (e.literalValue == enumValue) 
 				return index 
 		}//for
+		
 		throw new Exception("#### Index not found ####")
+	
 	}//getIndexOfEnumValue
 	
-	def static booleanConditions(BinaryTree<Triplet<String, String,String>> bt){
+	
+	/**
+	 * Return a set of Boolean conditions that get involved in the Boolean expression represented by the Binary tree
+	 */
+	def static booleanConditions(BinaryTree<Triplet<String,String,String>> bt){
+		
 		val boolVarsList = new ArrayList<BinaryTree<Triplet<String,String,String>>>
 		booleanConditions(bt, boolVarsList)
 		return boolVarsList
-	}
 	
+	}//booleanConditions
+	
+	
+	/**
+	 * 
+	 */
 	def static private void booleanConditions(BinaryTree<Triplet<String,String,String>> bt, List<BinaryTree<Triplet<String, String, String>>> boolVars){
 		
 		val btValue = bt.value
@@ -457,8 +527,12 @@ class TestDataGeneration {
 			}//default
 		}//switch
 	
-	}//boolVars	
+	}//booleanConditions	
 	
+	
+	/**
+	 * Return a string representation of the Binary tree
+	 */
 	def static String stringRepr(BinaryTree<Triplet<String,String,String>> bt){
 		if(!bt.isEmpty()){
 			if(!bt.isLeaf()){
@@ -471,9 +545,15 @@ class TestDataGeneration {
 		}
 	}//stringRepr
 	
+	
+	/**
+	 * Check whether or not, a Boolean condition is relational 
+	 */
 	def static boolean isRelationalCondition(BinaryTree<Triplet<String, String,String>> bt){
+		
 		val btValue = bt.value
 		val type = btValue.third
+		
 		if (type == "bool" || type == "c_bool"){
 			if (bt.left.isEmpty && bt.right.isEmpty){
 				if(btValue.second != ""){ //ssa ident not null => variable
@@ -495,12 +575,21 @@ class TestDataGeneration {
 		else{
 			throw new Exception("#### Not a boolean condition ####")
 		}
-	}
 	
+	}//isRelationalCondition
+	
+	
+	/**
+	 * 
+	 */
 	def static private String addPathID(String ident, String pathID){
 		return ident+ "@" + pathID
 	}	
 	
+	
+	/**
+	 * 
+	 */
 	def static private ssaVarsNamesWithDslVars(Map<String, Object> dlsVars, Map<String, Object> intVars, Map<String, Object> doubleVars){
 		val intKeys = intVars.keySet
 		val doubleKeys = doubleVars.keySet
@@ -576,6 +665,10 @@ class TestDataGeneration {
 		return map
 	}
 	
+	
+	/**
+	 * 
+	 */
 	def static private String inVarSsaName(String dslInVarName , Set<String> ssaVarsNames){
 
 		for(ssaName: ssaVarsNames){
@@ -588,11 +681,19 @@ class TestDataGeneration {
 		return ""
 	}//inVarSsaName
 	
+	
+	/**
+	 * 
+	 */
 	def static private removeSSAindex(String ssaName){
 		val split = ssaName.split(splitPattern)
 		return split.get(0) //name is the first element of the list
 	}
 	
+	
+	/**
+	 * 
+	 */
 	def static private String outVarSsaName(String dslOutVarName , Set<String> ssaVarsNames) {	
 		var highestIndexVar = ""
 		var tmpIndex = -1
@@ -615,14 +716,20 @@ class TestDataGeneration {
 //		}	
 		
 		return highestIndexVar
+	
 	}//outVarSsaName
 	
+	
+	/**
+	 * 
+	 */
 	def static private recordSolutions(ProblemCoral pb, Map<String, Object> dslVars, Map<String, Object> intVars, Map<String, Object> doubleVars){
 		
 		val solutionsList = new ArrayList<Triplet<String, String, String>>
 		val dslKeys = dslVars.keySet
 		
 		dslKeys.forEach[ 
+			
 			key | val dslVariable = (dslVars.get(key) as VAR_DECL)
 			val dslVarType = dslVariable.type.type
 			val dslFlow = dslVariable.flow.flow

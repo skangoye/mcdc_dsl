@@ -43,15 +43,13 @@ class GetFeasiblePaths {
 			val pc = pathToPathCondition(module, path, mcdcStatement) //get Path Condition list
 
 //			System.out.println
-//			pc.forEach[ 
+//			pc.forEach [ 
 //				bt,i | System.out.println("cond: "+ i) bt.printPathCondition System.out.println
 //			]
 			
 			val solve = pc.solvePathCondition(module , pb) //solve Path Condition
 			
 			if(solve==1){ feasiblePaths.add(path) } //solve = 1 => the current path is feasible
-
-//			System.out.println("Solving result: " + solve)
 			
 			pb.cleanup //reset the solver id generator
 			intPathVars.clear //clear intPathVars map
@@ -72,6 +70,8 @@ class GetFeasiblePaths {
 	 	
 	 	val listOfVariables = module.interface.declaration.filter(VAR_DECL)
 		
+		if( variablesMap.size > 0 ) { variablesMap.clear }
+
 		listOfVariables.forEach[ 
 			variable | val symbName = variable.name + symbNameIndex
 			variablesMap.put(symbName , variable)
