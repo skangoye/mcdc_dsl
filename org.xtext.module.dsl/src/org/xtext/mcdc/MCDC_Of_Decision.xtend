@@ -38,6 +38,7 @@ class MCDC_Of_Decision {
 	 	firstOperator = "" //reset first operator
 	 	
 	 	return mcdcResults
+	 
 	 }//mcdcOfBooleanExpression
 	 
 	var notCount = 0
@@ -238,7 +239,7 @@ class MCDC_Of_Decision {
 				//if the list size is 1 => return this as result
 				//We use notCount here to determine the expressions' outcomes
 				if (notCount % 2 == 0){
-					//We have even number of "not" crossed before the first (and/or) operator in the parse tree
+					//We have an even number of "not" crossed before the first (and/or) operator in the parse tree
 					return myList.get(0)		
 				}
 				else{

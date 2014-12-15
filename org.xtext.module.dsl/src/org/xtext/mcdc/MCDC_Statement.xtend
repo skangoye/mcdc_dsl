@@ -492,6 +492,59 @@ class MCDC_Statement {
 	}//concatMcdcValues
 	
 	/**
+	 * Same goal like concatMcdcValues but with a different approach 
+	 */
+	 def mergeMcdcValues3(List<List<Triplet< List<String>, List<String>, List<String> >>> listOfList) {
+		
+		val resultOfConcat = new ArrayList<Triplet<List<String>, List<String>, List<String> >>
+		
+		for(currentList: listOfList){
+			val size = currentList.size
+			if(size == 0){
+				throw new RuntimeException("##### List size error #####")
+			}
+			else{
+				if(size == 1){
+					resultOfConcat.add(currentList.get(0))
+				}
+				else{//size > 1
+					//copy in a new list the currentList's elements
+					var  copyList = currentList.copyListOfTriplet.reverse
+		
+					var triplet1 = copyList.get(1)
+					var triplet2 = copyList.get(0)
+					
+					while(copyList.size != 1){
+						
+//						if( (triplet1.first.intersectionOfLists(triplet2.first)).size > 0 ) {
+							//set the first element with the concatenated value
+							copyList.set(0, mergeWithConstraints(triplet1,triplet2))
+//						}
+//						else{
+//							//set the first element with the concatenated value
+//							copyList.set(0, mergeWithoutConstraints(triplet1,triplet2))	
+//						}
+						
+						copyList.remove(1)
+						
+						if(copyList.size != 1){
+							triplet1 = copyList.get(1) //assign the second element of copyList to triplet1
+							triplet2 = copyList.get(0) //assign the second element of copyList to triplet1
+						}
+					}//while
+					
+					resultOfConcat.add(copyList.get(0)) 
+					
+				}//else
+			}
+			
+		}//for
+		
+		return resultOfConcat
+	
+	}//concatMcdcValues
+	
+	/**
 	 * Merge two triplets together without any variables constraints (i.e no data dependencies)
 	 * N.B: the character "#" is used as a separator between two triplets values
 	 */
@@ -563,6 +616,43 @@ class MCDC_Statement {
 		
 		return new Triplet (concatVariables, concatValues, concatIdents)
 	}//concatWithoutConstraints
+	
+	
+	/**
+	 * Merge excessively two triplets together without any variables constraints (i.e no data dependencies)
+	 * N.B: the character "#" is used as a separator between two triplets values
+	 */
+	def private exhaustiveMerging(Triplet<List<String>,List<String>, List<String>> t1,Triplet<List<String>,List<String>, List<String>> t2) {
+		
+		val List<String> concatValues = new ArrayList<String> //will hold the concatenation result of the 'listOfvariables1' and 'listOfvariables2'
+		
+		val listOfvariables1 = t1.first 
+		val listOfvariables2 = t2.first
+		
+		val List<String> concatVariables = new ArrayList<String> //will hold the concatenation result of the list of Variables in t1 and t2 
+		concatVariables.addAll(listOfvariables1)
+		concatVariables.add("#")
+		concatVariables.addAll(listOfvariables2)
+		
+		val List<String> concatIdents = new ArrayList<String>
+		concatIdents.addAll(t1.third)
+		concatIdents.add("#")
+		concatIdents.addAll(t2.third)
+		
+		val listOfValues1 = t1.second
+		val listOfValues2 = t2.second
+	
+		//Cartesian composition between t1 and t2 lists of MCDC values
+		for(v1:listOfValues1){
+			for(v2:listOfValues2){
+				concatValues.add(v1 + "#" + v2)
+			}//for
+		}//for
+		
+		return new Triplet (concatVariables, concatValues, concatIdents)
+	
+	}//exhaustiveMerging
+	
 	
 	/**
 	 * Merge two triplets together by taking into account the variables constraints (data dependencies)
