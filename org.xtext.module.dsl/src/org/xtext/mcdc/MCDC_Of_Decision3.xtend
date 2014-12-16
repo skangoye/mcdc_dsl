@@ -14,7 +14,7 @@ import org.xtext.helper.Couple
 
 import static extension org.xtext.utils.DslUtils.*
 
-class MCDC_Of_Decision2 {
+class MCDC_Of_Decision3 {
 	
 	/**
 	 * Compute the MC/DC of a boolean expression
@@ -67,7 +67,7 @@ class MCDC_Of_Decision2 {
 	 	
 	 	System.out.println(" Total number of Values: " + (falseValueWithWeight.size + trueValueWithWeight.size))	 		 	
 	 	System.out.println
-	 		 	
+	 	
 	 	listOfIndepVectors.forEach[ list |
 	 		list.forEach[ couple | 
 	 			val couple1 = couple.first
@@ -125,11 +125,13 @@ class MCDC_Of_Decision2 {
 			leftList.add(new Triplet('T', "11", "1"))
 			leftList.add(new Triplet('T', "21", "1"))
 			leftList.add(new Triplet('F', "22", "1"))
+			leftList.add(new Triplet('F', "23", "1"))
 			
 			//Add T1, F2 and T3 to righttList
 			rightList.add(new Triplet('T', "11", "0"))
 			rightList.add(new Triplet('F', "21", "0"))
 			rightList.add(new Triplet('T', "22", "0"))
+			rightList.add(new Triplet('F', "23", "0"))
 			
 			val andExp = (exp as AND)
 			
@@ -148,12 +150,14 @@ class MCDC_Of_Decision2 {
 				
 				//Add T1, T2 and F3 to lesftList
 				leftList.add(new Triplet('T', "11", "1"))
-				leftList.add(new Triplet('F', "12", "1"))
+				leftList.add(new Triplet('T', "12", "1"))
+				leftList.add(new Triplet('F', "13", "1"))
 				leftList.add(new Triplet('F', "21", "1"))
 				
 				//Add T1, F2 and T3 to righttList
-				rightList.add(new Triplet('F', "11", "0"))
-				rightList.add(new Triplet('T', "12", "0"))
+				rightList.add(new Triplet('T', "11", "0"))
+				rightList.add(new Triplet('F', "12", "0"))
+				rightList.add(new Triplet('T', "13", "0"))
 				rightList.add(new Triplet('F', "21", "0"))
 				
 				val orExp = (exp as OR)
@@ -261,6 +265,8 @@ class MCDC_Of_Decision2 {
 					right.add(new Triplet('F', t.second + "1", t.third + "0"))
 					left.add(new Triplet('F', t.second + "2", t.third + "1"))
 					right.add(new Triplet('T', t.second + "2", t.third + "0"))
+					left.add(new Triplet('F', t.second + "3", t.third + "1"))
+					right.add(new Triplet('F', t.second + "3", t.third + "0"))
 				}
 				else{
 					throw new Exception("Illegal argument")
@@ -284,9 +290,11 @@ class MCDC_Of_Decision2 {
 			else {
 				if(t.first.toString == "T"){
 					left.add(new Triplet('T', t.second + "1", t.third + "1"))
-					right.add(new Triplet('F', t.second + "1", t.third + "0" ))
-					left.add(new Triplet('F', t.second + "2", t.third + "1"))
-					right.add(new Triplet('T', t.second + "2", t.third + "0" ))
+					right.add(new Triplet('T', t.second + "1", t.third + "0" ))
+					left.add(new Triplet('T', t.second + "2", t.third + "1"))
+					right.add(new Triplet('F', t.second + "2", t.third + "0" ))
+					left.add(new Triplet('F', t.second + "3", t.third + "1"))
+					right.add(new Triplet('T', t.second + "3", t.third + "0" ))
 				}
 				else{
 					throw new Exception("Illegal argument")

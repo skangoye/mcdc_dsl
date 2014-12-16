@@ -108,6 +108,22 @@ class DslUtils {
 		return myStr
 	}
 	
+	
+	/**
+	 * If a given String size is greater than 1, it returns a new string without the last character.
+	 * Otherwise, it returns the actual string
+	 */
+	def static String deleteLastCharIfSup1(String str){
+		val strSize = str.length
+		if(strSize == 1 || strSize == 0){
+			return str
+		}
+		else{
+			val myStr = str.substring(0, strSize-1)
+			return myStr
+		}
+	}
+	
 	/**
 	 * Returns a new string that is this string without its first character  
 	 */

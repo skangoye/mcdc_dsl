@@ -10,6 +10,9 @@ import org.xtext.mcdc.MCDC_Module
 import org.xtext.mcdc.MCDC_Statement
 import org.xtext.moduleDsl.IF_STATEMENT
 import org.xtext.moduleDsl.MODULE_DECL
+import org.xtext.mcdc.MCDC_Of_Decision2
+import org.xtext.mcdc.MCDC_Of_Decision3
+import org.xtext.moduleDsl.EXPRESSION
 
 /**
  * Generates code from your model files on save.
@@ -18,10 +21,10 @@ import org.xtext.moduleDsl.MODULE_DECL
  */
 class ModuleDslGenerator implements IGenerator {
 	
-	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		for(e: resource.allContents.toIterable.filter(typeof(MODULE_DECL))){
-			val moduleName = e.name
-			fsa.generateFile( moduleName + ".txt", e.compile)
+	override doGenerate(Resource resource, IFileSystemAccess fsa) {
+		for(e: resource.allContents.toIterable.filter(typeof(IF_STATEMENT))){
+//			val moduleName = e.name
+			fsa.generateFile( "toto" + ".txt", e.compile)
 		}
 	}//doGenerate
 	
@@ -62,5 +65,25 @@ class ModuleDslGenerator implements IGenerator {
 			
 		'''
 	}
+	
+	def compile(IF_STATEMENT ifst){
+		
+		val condExp = ifst.ifCond
+		 mcdcDecision(condExp)
+		
+		return ""
+	}
+	
+	def private mcdcDecision(EXPRESSION cond){
+		
+//		if(mcdcDecisionAlgo == 2){
+//			 (new MCDC_Of_Decision2).mcdcOfBooleanExpression(cond)
+//		}
+//		else{
+//			if(mcdcDecisionAlgo == 3){
+				(new MCDC_Of_Decision3).mcdcOfBooleanExpression(cond)
+//			}
+//		}
+	}//mcdcDecision
 
 }//ModuleDslGenerator
