@@ -307,7 +307,7 @@ class TestDataGeneration {
 				if(nameOrValue != ""){ 
 					if(ident != "") {//variable 
 						val ssaName = nameOrValue.addSSAIndex(ident) 
-						dealWithVariables(pb, ssaName, type , outcome) 
+						dealWithVariables(pb, ssaName, type) 
 					}
 					else{ /*constant*/ dealWithConstants(pb, nameOrValue, type, outcome) } 
 				}
@@ -323,7 +323,7 @@ class TestDataGeneration {
 	/**
 	 * Deal with variable creation in the solver
 	 */
-	def static private dealWithVariables(ProblemCoral pb, String ssaVarName, String varType, boolean outcome) {
+	def static private dealWithVariables(ProblemCoral pb, String ssaVarName, String varType) {
 		
 		switch(varType){
 			

@@ -544,6 +544,7 @@ class MCDC_Statement {
 	
 	}//concatMcdcValues
 	
+	
 	/**
 	 * Merge two triplets together without any variables constraints (i.e no data dependencies)
 	 * N.B: the character "#" is used as a separator between two triplets values

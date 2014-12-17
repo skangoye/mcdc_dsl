@@ -28,7 +28,7 @@ public class Main {
 		}
 		Injector injector = new org.xtext.ModuleDslStandaloneSetup().createInjectorAndDoEMFRegistration();
 		Main main = injector.getInstance(Main.class);
-		main.runGenerator(args[0]);
+		main.runGenerator(args[0], args[1]);
 	}
 	
 	@Inject 
@@ -38,12 +38,12 @@ public class Main {
 	private IResourceValidator validator;
 	
 	@Inject
-	private IGenerator generator;
+	private ModuleDslGenerator generator;
 	
 	@Inject 
 	private JavaIoFileSystemAccess fileAccess;
 
-	protected void runGenerator(String string) {
+	protected void runGenerator(String string, String mcdcAlgo) {
 		// load the resource
 		ResourceSet set = resourceSetProvider.get();
 		Resource resource = set.getResource(URI.createURI(string), true);
@@ -59,7 +59,7 @@ public class Main {
 		
 		// configure and start the generator
 		fileAccess.setOutputPath("C:\\Users\\SKANGOYE\\Desktop\\mcdcResults");
-		generator.doGenerate(resource, fileAccess);
+		generator.doGenerate(resource, fileAccess, Integer.parseInt(mcdcAlgo));
 		
 		System.out.println("file generated.");
 	}

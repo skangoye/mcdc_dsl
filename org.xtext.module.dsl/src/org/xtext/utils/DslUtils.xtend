@@ -466,6 +466,30 @@ class DslUtils {
 	 }
 	 
 	 
+	 /**
+	 * Stores in the list, all the boolean conditions involved in the expression.
+	 * A relational condition (e.g (a<4)) is considered as a single variable
+	 * @param expression The expression in which we want to extract the variables
+	 * @param list All the variables will be stored in this list
+	 */
+	 def static booleanConditions(EXPRESSION expression){
+	 	val listOfConditions = new ArrayList<EXPRESSION>
+	 	expression.booleanConditions(listOfConditions)
+	 	return listOfConditions
+	 }
+	 
+	 def private static void booleanConditions(EXPRESSION expression, List<EXPRESSION> list){
+	 	switch(expression){
+	 		AND: {booleanConditions(expression.left, list) booleanConditions(expression.right, list)}
+	 		OR: {booleanConditions(expression.left, list) booleanConditions(expression.right, list)}
+	 		NOT: { booleanConditions(expression.exp, list) }
+	 		EQUAL_DIFF: { list.add(expression) } 
+	 		COMPARISON: { list.add(expression) }
+	 		VarExpRef: { list.add(expression) } //boolean variable
+	 		default: { /* nothing */}
+	 	}
+	 }
+	 
 	/**
 	 * Stores in the list, all the boolean variables involved in the expression.
 	 * A relational condition (e.g (a<4)) is considered as a single variable

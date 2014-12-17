@@ -29,7 +29,6 @@ import org.xtext.moduleDsl.INTERFACE
 import org.xtext.moduleDsl.BODY
 import org.xtext.moduleDsl.CST_DECL
 import org.xtext.moduleDsl.TmpVAR_DECL
-import com.google.inject.Inject
 import org.xtext.moduleDsl.EXPRESSION
 import org.eclipse.emf.ecore.EReference
 import org.xtext.moduleDsl.ADD

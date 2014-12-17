@@ -19,12 +19,12 @@ import org.xtext.moduleDsl.EXPRESSION
  * 
  * see http://www.eclipse.org/Xtext/documentation.html#TutorialCodeGeneration
  */
-class ModuleDslGenerator implements IGenerator {
+class ModuleDslGenerator  {
 	
-	override doGenerate(Resource resource, IFileSystemAccess fsa) {
+	def void doGenerate(Resource resource, IFileSystemAccess fsa, int mcdcDecisionAlgo) {
 		for(e: resource.allContents.toIterable.filter(typeof(IF_STATEMENT))){
 //			val moduleName = e.name
-			fsa.generateFile( "toto" + ".txt", e.compile)
+			fsa.generateFile( "toto" + ".txt", e.compile(mcdcDecisionAlgo))
 		}
 	}//doGenerate
 	
@@ -66,24 +66,24 @@ class ModuleDslGenerator implements IGenerator {
 		'''
 	}
 	
-	def compile(IF_STATEMENT ifst){
+	def compile(IF_STATEMENT ifst, int mcdcDecisionAlgo){
 		
 		val condExp = ifst.ifCond
-		 mcdcDecision(condExp)
+		 mcdcDecision(mcdcDecisionAlgo, condExp)
 		
 		return ""
 	}
 	
-	def private mcdcDecision(EXPRESSION cond){
+	def private mcdcDecision(int mcdcDecisionAlgo, EXPRESSION cond){
 		
-//		if(mcdcDecisionAlgo == 2){
-//			 (new MCDC_Of_Decision2).mcdcOfBooleanExpression(cond)
-//		}
-//		else{
-//			if(mcdcDecisionAlgo == 3){
+		if(mcdcDecisionAlgo == 2){
+			 (new MCDC_Of_Decision2).mcdcOfBooleanExpression(cond)
+		}
+		else{
+			if(mcdcDecisionAlgo == 3){
 				(new MCDC_Of_Decision3).mcdcOfBooleanExpression(cond)
-//			}
-//		}
+			}
+		}
 	}//mcdcDecision
 
 }//ModuleDslGenerator

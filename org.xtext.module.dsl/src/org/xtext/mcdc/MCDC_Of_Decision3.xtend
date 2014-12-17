@@ -11,8 +11,10 @@ import org.xtext.moduleDsl.COMPARISON
 import org.xtext.moduleDsl.EQUAL_DIFF
 import org.xtext.moduleDsl.VarExpRef
 import org.xtext.helper.Couple
-
+import org.xtext.mcdc.WeightComparator
+import static extension org.xtext.mcdc.McdcDecisionUtils.*
 import static extension org.xtext.utils.DslUtils.*
+import java.util.TreeSet
 
 class MCDC_Of_Decision3 {
 	
@@ -53,30 +55,39 @@ class MCDC_Of_Decision3 {
 	 	}
 	 	
 	 	// falseValueWithWeight and trueValueWithWeight are set with the right values
+	 	val feasibleFalseValueWithWeight = booleanExpression.discardInfeasibleTests(falseValueWithWeight)
+	 	val feasibleTrueValueWithWeight = booleanExpression.discardInfeasibleTests(trueValueWithWeight)
 	 	
 	 	val size = falseValueWithWeight.get(0).first.length //size of the decision == mcdcCanditate.length
 	 	val  listOfIndepVectors = new ArrayList<List<Couple<Couple<String,Integer>, Couple<String,Integer>>>>
 	 	
 	 	listOfIndepVectors.fillWithEmptyElements(size)
 	 	
-	 	for(fc : falseValueWithWeight){
-	 		for(tc : trueValueWithWeight){
+	 	for(fc : feasibleFalseValueWithWeight){
+	 		for(tc : feasibleTrueValueWithWeight){
 	 			addIndepVector(fc, tc, listOfIndepVectors)
 	 		}
 	 	}
 	 	
-	 	System.out.println(" Total number of Values: " + (falseValueWithWeight.size + trueValueWithWeight.size))	 		 	
+	 	System.out.println(" Total number of Values: " + (feasibleFalseValueWithWeight.size + feasibleTrueValueWithWeight.size))	 		 	
 	 	System.out.println
 	 	
-	 	listOfIndepVectors.forEach[ list |
-	 		list.forEach[ couple | 
-	 			val couple1 = couple.first
-	 			val couple2 = couple.second
+	 	val finalValues = new TreeSet<String>	
+	 
+	 	listOfIndepVectors.forEach[ list | list.sortInplace( new WeightComparator())
+	 		val mostValuable = list.last
+//	 		list.forEach[ couple | 
+	 			val couple1 = mostValuable.first
+	 			val couple2 = mostValuable.second
 	 			System.out.println("[ " + "(" + couple1.first + "_" + couple1.second + "," +  couple2.first + "_" + couple2.second + ")" + " ]" )
-	 		]
+//	 		]
+	 			finalValues.add(couple1.first)
+	 			finalValues.add(couple2.first )
 	 		System.out.println("###############################################################")
 	 		System.out.println
 	 	]
+	 	
+	 	System.out.println( "Final Values: " + finalValues.toString)
 	 	
 	 	notCount = 0 //reset notCountValue
 	 	firstOperator = "" //reset first operator
