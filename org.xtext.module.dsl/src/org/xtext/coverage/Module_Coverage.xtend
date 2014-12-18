@@ -15,6 +15,7 @@ class Module_Coverage {
 	
 	val private static final nextLine = "\n" // String 'go to next line' pattern 
 	
+	var private static fullCoverage = 0 //used to 
 	
 /********************************************************************************************************************************
  * 
@@ -30,12 +31,12 @@ class Module_Coverage {
 		val coverageAttributes = CoveredSequence.coverageAttributes(listOfMcdcValues)
 		
 		val covered =  coverageAttributes.first
-		val notCovered = coverageAttributes.second
+//		val notCovered = coverageAttributes.second
 		
-		val notCoverageReport = notCovered.notCoverageReport(boolExps)
+//		val notCoverageReport = notCovered.notCoverageReport(boolExps)
 		val coverageReport = covered.coverageReport(boolExps)
 		
-		return (notCoverageReport + (nextLine + nextLine) + coverageReport) + nextLine
+		return (coverageMessage(fullCoverage) + (nextLine + nextLine) + coverageReport) + nextLine
 	}
 	
 	
@@ -87,6 +88,7 @@ class Module_Coverage {
 				}
 				else{
 					result = result + nextLine + ("		Condition " + index + ": " + conditionWithBrackets + "=>" + "( - , - )") + nextLine
+					fullCoverage = fullCoverage + 1 //at least one condition is not covered => fullCoverage > 0
 				}
 				
 			 	index = index + 1
@@ -100,28 +102,43 @@ class Module_Coverage {
 	}//coverageReport
 	
 	
-	/**
-	 * Provide a not coverage report of MC/DC values that have not been covered by tests
-	 */
-	def private notCoverageReport(List<Couple<String, Set<String>>> notCovered, List<EXPRESSION> boolExps){
+	def private String coverageMessage(int fullCoverage){
 		
 		var result = ""
 		
-		if(notCovered.size == 0){
-			result = result +  ("##### All values have been covered ##### ") + nextLine
+		if(fullCoverage == 0){
+			result =  ("##### All Conditions have been covered ##### ") + nextLine
 		}
 		else{
-			result = result +  nextLine + ("##### Not covered decisions ##### ") + nextLine
-			for(couple: notCovered) {
-				val ident = couple.first 
-				val set = couple.second
-				result = result +  nextLine + ("	##### decision " + ident + ":" + boolExps.get(ident.parseInt).stringReprOfExpression + " => " + set.toString ) + nextLine
-			}
+			result =  ("##### " + fullCoverage+  " Conditions have not been covered ##### ") + nextLine
 		}
 		
 		return result
 	
-	}//notCoverageReport
+	}//coverageMessage
+	
+	/**
+	 * Provide a not coverage report of MC/DC values that have not been covered by tests
+	 */
+//	def private notCoverageReport(List<Couple<String, Set<String>>> notCovered, List<EXPRESSION> boolExps){
+//		
+//		var result = ""
+//		
+//		if(notCovered.size == 0){
+//			result = result +  ("##### All values have been covered ##### ") + nextLine
+//		}
+//		else{
+//			result = result +  nextLine + ("##### Not covered decisions ##### ") + nextLine
+//			for(couple: notCovered) {
+//				val ident = couple.first 
+//				val set = couple.second
+//				result = result +  nextLine + ("	##### decision " + ident + ":" + boolExps.get(ident.parseInt).stringReprOfExpression + " => " + set.toString ) + nextLine
+//			}
+//		}
+//		
+//		return result
+//	
+//	}//notCoverageReport
 	
 	
 	/**

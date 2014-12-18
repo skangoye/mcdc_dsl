@@ -13,22 +13,24 @@ import org.xtext.moduleDsl.MODULE_DECL
 import org.xtext.mcdc.MCDC_Of_Decision2
 import org.xtext.mcdc.MCDC_Of_Decision3
 import org.xtext.moduleDsl.EXPRESSION
+import org.xtext.mcdc.MCDC_Of_Decision
 
 /**
  * Generates code from your model files on save.
  * 
  * see http://www.eclipse.org/Xtext/documentation.html#TutorialCodeGeneration
  */
-class ModuleDslGenerator  {
+class ModuleDslGenerator implements IGenerator {
 	
-	def void doGenerate(Resource resource, IFileSystemAccess fsa, int mcdcDecisionAlgo) {
-		for(e: resource.allContents.toIterable.filter(typeof(IF_STATEMENT))){
-//			val moduleName = e.name
-			fsa.generateFile( "toto" + ".txt", e.compile(mcdcDecisionAlgo))
+	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+		for(e: resource.allContents.toIterable.filter(typeof(MODULE_DECL))){
+			val moduleName = e.name
+			fsa.generateFile( moduleName + ".txt", e.compile())
 		}
 	}//doGenerate
 	
 	def compile (MODULE_DECL module){
+		
 		val mcdc = new MCDC_Module()
 		val solutionsAndCoverage = mcdc.mcdcOfModule(module)
 		val solutions = solutionsAndCoverage.first
@@ -66,7 +68,7 @@ class ModuleDslGenerator  {
 		'''
 	}
 	
-	def compile(IF_STATEMENT ifst, int mcdcDecisionAlgo){
+	def compile(IF_STATEMENT ifst, String mcdcDecisionAlgo){
 		
 		val condExp = ifst.ifCond
 		 mcdcDecision(mcdcDecisionAlgo, condExp)
@@ -74,16 +76,30 @@ class ModuleDslGenerator  {
 		return ""
 	}
 	
-	def private mcdcDecision(int mcdcDecisionAlgo, EXPRESSION cond){
+	def private mcdcDecision(String mcdcDecisionAlgo, EXPRESSION cond){
 		
-		if(mcdcDecisionAlgo == 2){
-			 (new MCDC_Of_Decision2).mcdcOfBooleanExpression(cond)
-		}
-		else{
-			if(mcdcDecisionAlgo == 3){
-				(new MCDC_Of_Decision3).mcdcOfBooleanExpression(cond)
+		try{
+			val algoCode = Integer.parseInt(mcdcDecisionAlgo)
+		
+			if(algoCode == 1){
+			 	(new MCDC_Of_Decision).mcdcOfBooleanExpression(cond)
 			}
+			else{
+				if(algoCode == 2){
+					(new MCDC_Of_Decision2).mcdcOfBooleanExpression(cond)
+				}
+				else{
+					if(algoCode == 3){
+						(new MCDC_Of_Decision3).mcdcOfBooleanExpression(cond)
+					}
+				}
+			}
+		}//try
+		catch (Exception e){
+			(new MCDC_Of_Decision3).mcdcOfBooleanExpression(cond)
 		}
+		
+		
 	}//mcdcDecision
 
 }//ModuleDslGenerator

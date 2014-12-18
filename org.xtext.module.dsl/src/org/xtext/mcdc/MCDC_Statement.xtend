@@ -13,29 +13,30 @@ import org.xtext.moduleDsl.EXPRESSION
 import org.xtext.moduleDsl.IF_STATEMENT
 import org.xtext.moduleDsl.STATEMENT
 import org.xtext.moduleDsl.TmpVAR_DECL
+import org.xtext.moduleDsl.boolConstant
 
 import static extension org.xtext.utils.DslUtils.*
+import static extension org.xtext.type.provider.ExpressionsTypeProvider.*
+
 
 class MCDC_Statement {
 	
 	/**##########################################################################################################################
 	* 																															#
-	*											Attributes  and theirs getters                                                  #
+	*														Attributes                                                  		#
 	* 																															#
 	############################################################################################################################*/
 	
-	val mcdcOfDecision= new MCDC_Of_Decision()
-	
 	val private static final separator = "#"
 	
-	var boolIdentifier = -1 //Used for boolean expressions identification
-	var notBoolIdentifier = -1 //Used for non-boolean expressions identification
+	var private boolIdentifier = -1 //Used for boolean expressions identification
+	var private notBoolIdentifier = -1 //Used for non-boolean expressions identification
 	
-	val listOfMcdcValues = new ArrayList<List<String>> //list that records the MCDC values of the different Boolean expressions
-	val listOfBooleanExpression = new ArrayList<EXPRESSION> //list that records the different boolean expressions
-	val listOfNonBooleanExpression = new ArrayList<EXPRESSION> //list that records the different non-boolean expressions
-	val listOfVarInBoolExpression = new ArrayList<List<String>> //list that records the variables involved in all boolean expressions 
-	val listOfVarInNonBoolExpression = new ArrayList<List<String>> //list that records the variables involved in all non-boolean expressions
+	val private listOfMcdcValues = new ArrayList<List<String>> //list that records the MCDC values of the different Boolean expressions
+	val private listOfBooleanExpression = new ArrayList<EXPRESSION> //list that records the different boolean expressions
+	val private listOfNonBooleanExpression = new ArrayList<EXPRESSION> //list that records the different non-boolean expressions
+	val private listOfVarInBoolExpression = new ArrayList<List<String>> //list that records the variables involved in all boolean expressions 
+	val private listOfVarInNonBoolExpression = new ArrayList<List<String>> //list that records the variables involved in all non-boolean expressions
 	
 	
 	/** boolIdentifier incrementing
@@ -103,6 +104,57 @@ class MCDC_Statement {
 	def getVarInNonBoolExpression(int identifier){
 		return listOfVarInNonBoolExpression.get(identifier)
 	}
+	
+	
+	/**##########################################################################################################################
+	* 																															#
+	*											MCDC Decision management                                              			#
+	* 																															#
+	############################################################################################################################*/
+	
+	/**
+	 * Three Decisions MCDC forms have been implemented. The first one concerns large number of conditions. The second one
+	 * proposes much solutions, but suffers the number of conditions. The third approach is an exhaustive one (Truth table),
+	 * yet it suffers the combinatorial explosion
+	 */
+	def List<String> getDecisionMCDC(EXPRESSION expression){
+		
+		if(expression.typeFor != "bool"){
+			throw new Exception( "##### the expression is not of Boolean type #####" )
+		}
+		
+		if(expression instanceof boolConstant){//handle constant expressions			
+			val boolValue = (expression as boolConstant).value
+			val list = new ArrayList<String>
+			
+			if(boolValue){
+				list.add("T")
+			}
+			else{
+				list.add("F")
+			}
+		
+			return list
+		}//constants
+		
+		val nbConditions = expression.booleanVarInExpression.size //size of the list containing all the expression boolean conditions 
+		
+		if(nbConditions <= 10){
+			 (new MCDC_Of_Decision3()).mcdcOfBooleanExpression(expression)
+		}
+		else{
+			if(nbConditions <= 17){
+				 (new MCDC_Of_Decision2()).mcdcOfBooleanExpression(expression)
+			}
+			else{
+				 (new MCDC_Of_Decision()).mcdcOfBooleanExpression(expression)
+			}
+		}
+	
+	}//getDecisionMCDC
+	
+	
+	
 	
 	
 	/**##########################################################################################################################
@@ -178,7 +230,7 @@ class MCDC_Statement {
 			booleanVarInExpression(expression, varInExpression)
 			
 			//get the MCDC values corresponding to the expression and add them to "listOfMcdcValues" list
-			val mcdcValues = mcdcOfDecision.mcdcOfBooleanExpression(expression).reduceList
+			val mcdcValues = expression.getDecisionMCDC
 			listOfMcdcValues.add(boolIdentifier, mcdcValues)
 			
 			//compute the sub-identifier
@@ -239,7 +291,7 @@ class MCDC_Statement {
 			booleanVarInExpression(expression, varInExpression)
 			
 			//get the MCDC values corresponding to the expression and add them to "listOfMcdcValues" list
-			val mcdcValues = mcdcOfDecision.mcdcOfBooleanExpression(expression).reduceList
+			val mcdcValues = expression.getDecisionMCDC 
 			listOfMcdcValues.add(boolIdentifier, mcdcValues)
 			
 			//compute the sub-identifier
@@ -256,11 +308,11 @@ class MCDC_Statement {
 	def mcdcIfStatement(IF_STATEMENT statement){
 		
 		val ifBooleanExpression = (statement as IF_STATEMENT).ifCond
-		val mcdcValues = mcdcOfDecision.mcdcOfBooleanExpression(ifBooleanExpression)
+		val mcdcValues = ifBooleanExpression.getDecisionMCDC 
 		
 		boolIdentifier.incrBooldentifier()
 		listOfBooleanExpression.add(boolIdentifier, ifBooleanExpression)
-		listOfMcdcValues.add(boolIdentifier, mcdcValues.reduceList)
+		listOfMcdcValues.add(boolIdentifier, mcdcValues) //mcdcValues.reduceList
 		
 		val set = new TreeSet<String>
 		ifBooleanExpression.allVarInExpression(set)
@@ -273,8 +325,8 @@ class MCDC_Statement {
 				
 		//split MCDC values into 2 disjoint parts: True for MCDC values that evaluate the expression to True
 		//False otherwise
-		val mcdcTrueValues =  (mcdcValues.filter[ it.second == "T"].toList).reduceList
-		val mcdcFalseValues = (mcdcValues.filter[ it.second == "F"].toList).reduceList
+		val mcdcTrueValues =  (mcdcValues.filter[ it.charAt(0).toString == "T"].toList) 
+		val mcdcFalseValues = (mcdcValues.filter[ it.charAt(0).toString == "F"].toList)
 		
 		//create 2 types of sub-identifier
 		val List<String> subIdentifierT = new ArrayList<String>
@@ -324,16 +376,16 @@ class MCDC_Statement {
 					}
 				}
 				else{
-					if(st instanceof IF_STATEMENT){ //TODO: same as in mcdcIfStatement method
+					if(st instanceof IF_STATEMENT){
 						
 						count = count + 1
 						
 						val ifBooleanExpression = (st as IF_STATEMENT).ifCond
-						val mcdcValues = mcdcOfDecision.mcdcOfBooleanExpression(ifBooleanExpression)
+						val mcdcValues = ifBooleanExpression.getDecisionMCDC 
 		
 						boolIdentifier.incrBooldentifier()
 						listOfBooleanExpression.add(boolIdentifier, ifBooleanExpression)
-						listOfMcdcValues.add(boolIdentifier, mcdcValues.reduceList)
+						listOfMcdcValues.add(boolIdentifier, mcdcValues) //mcdcValues.reduceList
 						
 						val set = new TreeSet<String>
 						ifBooleanExpression.allVarInExpression(set)
@@ -343,8 +395,8 @@ class MCDC_Statement {
 						varInExpression.add("*")
 						booleanVarInExpression(ifBooleanExpression, varInExpression)
 						
-						val mcdcTrueValues = (mcdcValues.filter[ it.second == "T"].toList).reduceList
-						val mcdcFalseValues = (mcdcValues.filter[ it.second == "F"].toList).reduceList
+						val mcdcTrueValues = (mcdcValues.filter[ it.charAt(0).toString == "T"].toList)
+						val mcdcFalseValues = (mcdcValues.filter[ it.charAt(0).toString == "F"].toList)
 						
 						val List<String> subIdentifierT = new ArrayList<String>
 						val List<String> subIdentifierF = new ArrayList<String>
@@ -371,6 +423,7 @@ class MCDC_Statement {
 						//if not, add the list to the result list
 			result.add(list)
 		}
+	
 	}//mcdcOfConditional
 	
 	

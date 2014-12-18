@@ -496,6 +496,13 @@ class DslUtils {
 	 * @param expression The expression in which we want to extract the variables
 	 * @param list All the variables will be stored in this list
 	 */
+	 def static booleanVarInExpression(EXPRESSION expression){
+	 	val booleanVarInExpression = new ArrayList<String>
+	 	expression.booleanVarInExpression(booleanVarInExpression)
+	 	return booleanVarInExpression
+	 }
+	 
+	 
 	 def static void booleanVarInExpression(EXPRESSION expression, List<String> list){
 	 	switch(expression){
 	 		AND: {booleanVarInExpression(expression.left, list) booleanVarInExpression(expression.right, list)}

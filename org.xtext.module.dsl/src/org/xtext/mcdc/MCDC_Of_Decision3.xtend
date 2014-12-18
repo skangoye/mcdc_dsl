@@ -18,19 +18,29 @@ import java.util.TreeSet
 
 class MCDC_Of_Decision3 {
 	
+	val private static final FalseChar = "F"
+	val private static final TrueChar = "T"
+	
+	//Counts the the number of 'not' operators crossed from the root to the first operator of type 'and/or', in the parse tree
+	//e.g.: The expression 'not (a and b)' returns notCount = 1 while 'not a and not b' returns 0
+	var private notCount = 0
+	
+	var private firstOperator = "" //used to record the first crossed operator of type 'and/or' in the parse tree	
+	
+	
 	/**
 	 * Compute the MC/DC of a boolean expression
 	 * @param booleanExpression 
 	 * 							The boolean expression to be used
 	 * @return A list of booleanExpression's MC/DC tests and theirs corresponding outcomes
 	 */
-	 def void mcdcOfBooleanExpression(EXPRESSION booleanExpression){
+	 def mcdcOfBooleanExpression(EXPRESSION booleanExpression){
 	 	
 	 	System.out.println("MCDC of " + booleanExpression.stringReprOfExpression)
 	 	System.out.println
 	 	
 	 	val dfsValues = new ArrayList<List<Triplet<String, String, String>>>
-//	 	val mcdcResults = new ArrayList<Couple<String, String>>
+	 	val finalMCDCValues = new TreeSet<String>
 	 	
 	 	mcdcDepthFirstSearch(booleanExpression, dfsValues)
 	 	val linkResult = mcdcBottomUp(dfsValues)
@@ -52,7 +62,7 @@ class MCDC_Of_Decision3 {
 	 			falseValueWithWeight.add( new Couple(mcdcCandidate, 0))
 	 		}
 	 		
-	 	}
+	 	}//for
 	 	
 	 	// falseValueWithWeight and trueValueWithWeight are set with the right values
 	 	val feasibleFalseValueWithWeight = booleanExpression.discardInfeasibleTests(falseValueWithWeight)
@@ -70,49 +80,40 @@ class MCDC_Of_Decision3 {
 	 	}
 	 	
 	 	System.out.println(" Total number of Values: " + (feasibleFalseValueWithWeight.size + feasibleTrueValueWithWeight.size))	 		 	
-	 	System.out.println
-	 	
-	 	val finalValues = new TreeSet<String>	
-	 
-	 	listOfIndepVectors.forEach[ list | list.sortInplace( new WeightComparator())
-	 		val mostValuable = list.last
-//	 		list.forEach[ couple | 
+	 	System.out.println(" listOfIndepVectors: " + listOfIndepVectors.size)	
+	 	System.out.println	
+		
+		//TODO: handle the case where listOfIndepVectors size is 0  	
+	
+	 	listOfIndepVectors.forEach[ 
+	 		
+	 		list | //list can be empty due to 'fillWithEmptyElements' method
+	 		
+	 		if (list.size > 0){
+	 			
+	 			list.sortInplace(new WeightComparator())
+	 		
+	 			val mostValuable = list.get(0) //the first element of the list is the most valuable
 	 			val couple1 = mostValuable.first
 	 			val couple2 = mostValuable.second
+	 			
 	 			System.out.println("[ " + "(" + couple1.first + "_" + couple1.second + "," +  couple2.first + "_" + couple2.second + ")" + " ]" )
-//	 		]
-	 			finalValues.add(couple1.first)
-	 			finalValues.add(couple2.first )
-	 		System.out.println("###############################################################")
-	 		System.out.println
-	 	]
+
+	 			finalMCDCValues.add( FalseChar + couple1.first) //FalseChar is the outcome of couple1.first test
+	 			finalMCDCValues.add(TrueChar + couple2.first ) //TrueChar is the outcome of couple2.first test
+	 		
+	 			System.out.println("###############################################################")
+	 			System.out.println
+	 		}
+	 		
 	 	
-	 	System.out.println( "Final Values: " + finalValues.toString)
+	 	]//forEach
 	 	
-	 	notCount = 0 //reset notCountValue
-	 	firstOperator = "" //reset first operator
-	 	
-	 	//return mcdcResults
+	 	System.out.println( "Final Values: " + finalMCDCValues.toString)
+	 		 	
+	 	return finalMCDCValues.toList
 	 
 	 }//mcdcOfBooleanExpression
-	
-	var notCount = 0
-	var firstOperator = ""
-	
-	/**
-	 *Counts the the number of 'not' operators crossed from the root to the first operator of type 'and/or', in the parse tree
-	 * e.g.: The expression 'not (a and b)' returns notCount = 1 while 'not a and not b' returns 0
-	 */
-	def int notCount(){
-		return notCount
-	}
-	
-	/**
-	 * @return The first crossed operator of type 'and/or' in the parse tree
-	 */
-	def String firstOperator(){
-		return firstOperator
-	}
 	
 	
 	/**
@@ -250,7 +251,7 @@ class MCDC_Of_Decision3 {
 						doEqCompVarEval(list , result)
 					}
 					else{
-						throw new Exception("")
+						throw new Exception("Illegal boolean expression")
 					}
 				}
 			}

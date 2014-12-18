@@ -17,48 +17,39 @@ import org.xtext.moduleDsl.boolConstant
 
 class MCDC_Of_Decision {
 	
+	//Counts the the number of 'not' operators crossed from the root to the first operator of type 'and/or', in the parse tree
+	//e.g.: The expression 'not (a and b)' returns notCount = 1 while 'not a and not b' returns 0
+	var private notCount = 0
+	
+	var private firstOperator = "" //used to record the first crossed operator of type 'and/or' in the parse tree	
+	
+	
 	/**
 	 * Compute the MC/DC of a boolean expression
 	 * @param booleanExpression 
 	 * 							The boolean expression to be used
 	 * @return A list of booleanExpression's MC/DC tests and theirs corresponding outcomes
 	 */
-	 def List<Couple<String, String>> mcdcOfBooleanExpression(EXPRESSION booleanExpression){
+	 def mcdcOfBooleanExpression(EXPRESSION booleanExpression){
+	 	
 	 	val dfsValues = new ArrayList<List<Couple<Couple<String,String>, Couple<String,String>>>>
-	 	val mcdcResults = new ArrayList<Couple<String, String>>
+	 	val finalMCDCValues = new ArrayList<String>
 	 	
 	 	mcdcDepthFirstSearch(booleanExpression, dfsValues)
 	 	val linkResult = mcdcBottomUp(dfsValues)
 	 	
 	 	for(i:linkResult){
-	 		mcdcResults.add(i.first)
+	 		val couple = i.first
+	 		finalMCDCValues.add(couple.second + couple.first) //couple.second is the outcome of the expression test (couple.first)
 	 	}
 	 	
-	 	notCount = 0 //reset notCountValue
-	 	firstOperator = "" //reset first operator
-	 	
-	 	return mcdcResults
+	 	System.out.println( "Final Values: " + finalMCDCValues.toString)
+	 		 	
+	 	return finalMCDCValues
 	 
 	 }//mcdcOfBooleanExpression
 	 
-	var notCount = 0
-	var firstOperator = ""
-	
-	/**
-	 *Counts the the number of 'not' operators crossed from the root to the first operator of type 'and/or', in the parse tree
-	 * e.g.: The expression 'not (a and b)' returns notCount = 1 while 'not a and not b' returns 0
-	 */
-	def int notCount(){
-		return notCount
-	}
-	
-	/**
-	 * @return The first crossed operator of type 'and/or' in the parse tree
-	 */
-	def String firstOperator(){
-		return firstOperator
-	}
-	
+
 	/**
 	 * Performs a DFS (Depth-First-Search) upon the expression parse tree, to reach its leaf-nodes and store.
 	 * @param expression
@@ -119,28 +110,15 @@ class MCDC_Of_Decision {
 						
 						resultList.add(list)
 					}
-					else{
-						if(expression instanceof boolConstant){
-							
-							var list = new ArrayList< Couple< Couple<String, String>, Couple<String, String> > >
-							val expressionValue = (expression as boolConstant).value
-							
-							if (expressionValue){
-								list.add(new Couple(new Couple("T",""), new Couple("","")))
-							}
-							else{
-								list.add(new Couple(new Couple("F",""), new Couple("","")))
-							}
-							resultList.add(list)
-						}
-						else{
-							throw new Exception("Illegal boolean expression")
-						}
+					else{				
+						throw new Exception("Illegal boolean expression")
 					}
 				}
 			}
 		}
+	
 	}//mcdcDepthFirstSearch method
+	
 	
 	/**
 	 * Called by mcdcDepthFirstSearch method to perform the DFS
@@ -272,6 +250,7 @@ class MCDC_Of_Decision {
 		
 		//recursive call of the link method with the new list
 		mcdcBottomUp(myList)
+	
 	}//mcdcBottomUp
 	
 	/**

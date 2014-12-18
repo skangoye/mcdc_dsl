@@ -345,5 +345,13 @@ class McdcDecisionUtils {
 	
 	}//dslVariables
 	
+	
+	/**
+	 * 
+	 */
+	def static hasStronglyCoupledConditions(EXPRESSION expression){
+		val allVarsInExpression = new ArrayList<String>
+		expression.booleanVarInExpression(allVarsInExpression)
+	}
 
 }//class
