@@ -21,12 +21,18 @@ import static extension org.xtext.equations.solving.ChocoEquationsTranslator.*
 import static extension org.xtext.tests.data.TestDataGeneration.*
 import static extension org.xtext.tests.data.MergedSuiteToTestSuite.*
 import static extension org.xtext.path.constraints.GetFeasiblePaths.*
+import static extension org.xtext.cfg.DslControlflowGraph.*
 import java.util.HashMap
 import org.xtext.helper.Couple
 
 class MCDC_Module {
 	
-
+	def testCFG(MODULE_DECL module){
+		val graph = module.buildCFG
+		System.out.println(" Graph Representation! ")
+		System.out.println(graph.toString)
+	}
+	
 	def mcdcOfModule(MODULE_DECL module){
 		
 		val mcdcStatement = new MCDC_Statement() //new MCDC_Statement instance
@@ -44,8 +50,8 @@ class MCDC_Module {
 
 		System.out.println
 		System.out.println
-		System.out.println("####### MODULES PATHS...Size => " + feasiblePaths.size + " #######")
-		for(r: feasiblePaths){
+		System.out.println("####### MODULES PATHS...Size => " + modulePaths.size + " #######")
+		for(r: modulePaths){
 			System.out.println("{")
 			r.printListOfTriplet
 			System.out.println("}")
@@ -146,6 +152,17 @@ class MCDC_Module {
 				}//ASSIGN_STATEMENT
 				
 				IF_STATEMENT: {
+				
+					val ifmcdc = mcdcStatement.mcdcIfStatement(st)
+					
+					System.out.println ("####### IFFFF ####### ")
+					
+					for(r: ifmcdc){
+						System.out.println("{")
+						r.printListOfTriplet
+						System.out.println("}")
+						System.out.println
+					}
 					result = buildPaths(result, mcdcStatement.mcdcIfStatement(st))
 				}//IF_STATEMENT
 				

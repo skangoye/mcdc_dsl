@@ -7,7 +7,6 @@ import java.util.Properties;
 
 import org.eclipse.xtext.Constants;
 import org.eclipse.xtext.service.DefaultRuntimeModule;
-import org.xtext.generator.ModuleDslGenerator;
 
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
@@ -161,7 +160,7 @@ public abstract class AbstractModuleDslRuntimeModule extends DefaultRuntimeModul
 	}
 
 	// contributed by org.eclipse.xtext.generator.generator.GeneratorFragment
-	public Class<ModuleDslGenerator> bindIGenerator() {
+	public Class<? extends org.eclipse.xtext.generator.IGenerator> bindIGenerator() {
 		return org.xtext.generator.ModuleDslGenerator.class;
 	}
 

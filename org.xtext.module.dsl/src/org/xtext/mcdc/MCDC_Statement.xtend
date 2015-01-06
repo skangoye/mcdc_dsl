@@ -414,6 +414,7 @@ class MCDC_Statement {
 	 					//recursive call on mcdcOfConditional for the IF-THEN branch and for the ELSE branch
 	 					mcdcOfConditional((st as IF_STATEMENT).ifst, listT, result)
 						mcdcOfConditional((st as IF_STATEMENT).elst, listF, result)
+					
 					}
 				}
 			}
@@ -891,6 +892,7 @@ class MCDC_Statement {
 			val subIdentifier = triplet.third
 			
 			for(uncoveredVal: listOfUncoveredValues){
+				
 				listOfList.forEach[ //find the execution path 'list' that contains the equation triplet 
 					list |  val match = list.findFirst[ 
 							(it.third.equals(subIdentifier)) && (it.first.equals(listOfVariable)) && (it.second.contains(uncoveredVal))
@@ -992,7 +994,8 @@ class MCDC_Statement {
 				]//for each
 			}//for
 		}
-	return listOfEquations
+	
+		return listOfEquations
 	
 	}//buildEquations
 	

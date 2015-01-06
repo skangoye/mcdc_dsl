@@ -29,7 +29,13 @@ class ModuleDslGenerator implements IGenerator {
 		}
 	}//doGenerate
 	
-	def compile (MODULE_DECL module){
+	def compile (MODULE_DECL module){		
+		val mcdc = new MCDC_Module()
+		mcdc.testCFG(module)
+		return ""
+	}
+	
+/*	def compile (MODULE_DECL module){
 		
 		val mcdc = new MCDC_Module()
 		val solutionsAndCoverage = mcdc.mcdcOfModule(module)
@@ -43,7 +49,7 @@ class ModuleDslGenerator implements IGenerator {
 			« var i = 0»
 			«FOR dataList: solutions»
 				/***********************************************************************************************/
-			
+/*			
 				  Test data «i = i + 1» :
 					
 					«FOR variable: dataList»		
@@ -59,14 +65,14 @@ class ModuleDslGenerator implements IGenerator {
 					
 					«ENDFOR»
 				/***********************************************************************************************/
-			«ENDFOR»
+/*			«ENDFOR»
 			
 				COVERAGE REPORT FOR THE MODULE «module.name» 
 			
 				«coveragereport»
 			
 		'''
-	}
+	} */
 	
 	def compile(IF_STATEMENT ifst, String mcdcDecisionAlgo){
 		
