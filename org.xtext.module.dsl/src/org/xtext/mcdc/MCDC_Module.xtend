@@ -1,35 +1,36 @@
 package org.xtext.mcdc
 
 import java.util.ArrayList
+import java.util.HashMap
 import java.util.List
+import org.jgrapht.alg.KShortestPaths
+import org.jgrapht.graph.DirectedWeightedMultigraph
+import org.xtext.cfg.CondCfgNode
+import org.xtext.cfg.LabeledWeightedEdge
+import org.xtext.cfg.Node
+import org.xtext.cfg.SimpleCfgNode
+import org.xtext.coverage.Module_Coverage
+import org.xtext.helper.Couple
 import org.xtext.helper.Triplet
-import org.xtext.moduleDsl.ASSIGN_STATEMENT
-import org.xtext.moduleDsl.AbstractVAR_DECL
-import org.xtext.moduleDsl.ERROR_STATEMENT
-import org.xtext.moduleDsl.IF_STATEMENT
-import org.xtext.moduleDsl.LOOP_STATEMENT
 import org.xtext.moduleDsl.MODULE_DECL
 import org.xtext.optimization.optimStrategy1
-import org.xtext.solver.ProblemCoral
-import org.xtext.coverage.Module_Coverage
 
-import static org.xtext.path.constraints.pathConstraintsUtils.*
-import static extension org.xtext.SSA.StaticSingleAssignment.*
+import static org.xtext.tests.data.TestDataGeneration.*
+
 import static extension org.xtext.SSA.StaticSingleAssignment2.*
-import static extension org.xtext.utils.DslUtils.*
-import static extension org.xtext.equations.solving.ChocoEquationsTranslator.*
-import static extension org.xtext.tests.data.TestDataGeneration.*
-import static extension org.xtext.tests.data.MergedSuiteToTestSuite.*
-import static extension org.xtext.path.constraints.GetFeasiblePaths.*
 import static extension org.xtext.cfg.DslControlflowGraph.*
-import java.util.HashMap
-import org.xtext.helper.Couple
+import static extension org.xtext.equations.solving.ChocoEquationsTranslator.*
+import static extension org.xtext.path.constraints.GetFeasiblePaths.*
+import static extension org.xtext.tests.data.MergedSuiteToTestSuite.*
+import static extension org.xtext.utils.DslUtils.*
 
 class MCDC_Module {
 	
 	def testCFG(MODULE_DECL module){
-		val graph = module.buildCFG
-		System.out.println(" Graph Representation! ")
+		val mcdcStatement = new MCDC_Statement()
+		val graph = module.buildCFG(mcdcStatement)
+		System.out.println("Graph Representation! ")
+		System.out.println("Graph vertices:  " + graph.vertexSet.size)
 		System.out.println(graph.toString)
 	}
 	
@@ -39,7 +40,8 @@ class MCDC_Module {
 		val optim = new optimStrategy1() // new optimization instance
 		val coverage = new Module_Coverage() //new coverage instance
 	
-		val modulePaths = enumerateModulePaths(module, mcdcStatement).copyListOfList //module execution paths
+		val graph = module.buildCFG(mcdcStatement)
+		val modulePaths = graph.graphPaths.copyListOfList 
 		
 		val feasiblePaths = modulePaths.getFeasiblePaths(module, mcdcStatement) //get feasible execution paths
 
@@ -51,17 +53,17 @@ class MCDC_Module {
 		System.out.println
 		System.out.println
 		System.out.println("####### MODULES PATHS...Size => " + modulePaths.size + " #######")
-		for(r: modulePaths){
+		for(r: feasiblePaths){
 			System.out.println("{")
 			r.printListOfTriplet
 			System.out.println("}")
 			System.out.println
 		}
 				
-		val modulePaths_forMCDC = feasiblePaths.filterBooleanExpressions //remove non-boolean expressions
+		val feasiblePathsForMcdc = feasiblePaths.filterBooleanExpressions //remove non-boolean expressions
 
 //		System.out.println("####### TESTS SUITE #######")
-		val mergedSuite = mcdcStatement.mergeMcdcValues(modulePaths_forMCDC) //merge MC/DC values 
+		val mergedSuite = mcdcStatement.mergeMcdcValues(feasiblePathsForMcdc) //merge MC/DC values 
 //		mergedSuite.printListOfTriplet
 //		
 		val decomposeMergedResult = mcdcStatement.splitMergedValues(mergedSuite) //Split the merged results
@@ -82,9 +84,9 @@ class MCDC_Module {
 		
 		if(notMergedValues.size != 0){ //values in notMergedValues have not been covered
 			
-			val listOfEquations = mcdcStatement.buildEquations(notMergedValues, modulePaths_forMCDC)//get the equations
+			val listOfEquations = mcdcStatement.buildEquations(notMergedValues, feasiblePathsForMcdc)//get the equations
 //			
-			System.out.println ("####### EQUATIONS ####### ")
+//			System.out.println ("####### EQUATIONS ####### ")
 //			for(r: listOfEquations){
 //				System.out.println("{")
 //				r.printListOfTriplet
@@ -124,74 +126,83 @@ class MCDC_Module {
 	
 	}//mcdcOfModule
 	
+	def getGraphPaths(DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph){
+		
+		val startVertexPattern = "entry"
+		val endVertexPattern = "exit"
+		val startVertex = graph.getNode(startVertexPattern)
+		val endVertex = graph.getNode(endVertexPattern)
+		
+		val size = graph.vertexSet.size 
+		
+		val pathGenerator = new KShortestPaths<Node, LabeledWeightedEdge>(graph, startVertex, 100, size)
+		val paths = pathGenerator.getPaths(endVertex)
+		
+		val listOfPathsEdges = new ArrayList<List<LabeledWeightedEdge>>
+		paths.forEach[ graphPath | listOfPathsEdges.add(graphPath.edgeList) ]
+		
+		return graph.graphPathsToTripletsPaths(listOfPathsEdges)
+		
+	}//getGraphPaths
 	
-	/**
-	 * Lists the different execution paths of the module. 
-	 * In our context each path is represented by a list of triplets, where a triplet represents an evaluation of an instruction
-	 */
-	def private enumerateModulePaths(MODULE_DECL module, MCDC_Statement mcdcStatement){
+	
+	def graphPathsToTripletsPaths(DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, List<List<LabeledWeightedEdge>> graphPaths){
 		
-		val allStatements = module.body.statements
-		var List<List<Triplet <List<String>, List<String>, List<String> >>> result = new ArrayList<List<Triplet <List<String>, List<String>, List<String> >>>
+		val tripletsPaths = new ArrayList<List<Triplet <List<String>, List<String>, List<String>>>>
 		
-		for(st: allStatements){
-			switch(st){
+		graphPaths.forEach[ 
+			
+			listOfedges | val tripletPath = new ArrayList< Triplet<List<String>, List<String>, List<String>> >
+			
+			listOfedges.forEach[ 
 				
-				AbstractVAR_DECL: {
-					val triplet = mcdcStatement.mcdcVarStatement(st)
-					if(triplet != null){
-						result = buildPaths(result, triplet.tripletToListOfList)
-					}
-				}//AbstractVAR_DECL
+				edge | val edgeSource = graph.getEdgeSource(edge)
 				
-				ASSIGN_STATEMENT: {
-					val triplet = mcdcStatement.mcdcAssignStatement(st)
-					if(triplet != null){
-						result = buildPaths(result, triplet.tripletToListOfList)
-					}
-				}//ASSIGN_STATEMENT
-				
-				IF_STATEMENT: {
-				
-					val ifmcdc = mcdcStatement.mcdcIfStatement(st)
+				if(edgeSource.getId != "entry"){ //discard entry node. 
 					
-					System.out.println ("####### IFFFF ####### ")
-					
-					for(r: ifmcdc){
-						System.out.println("{")
-						r.printListOfTriplet
-						System.out.println("}")
-						System.out.println
-					}
-					result = buildPaths(result, mcdcStatement.mcdcIfStatement(st))
-				}//IF_STATEMENT
+					switch(edgeSource){
+						
+						CondCfgNode:{ 
+							val edgeLabel = edge.label
+							if( edgeLabel == "T" ) { tripletPath.add(edgeSource.getTrueTriplet) }
+							else{ 
+								if(edgeLabel == "F"){ tripletPath.add(edgeSource.getFalseTriplet) }	
+								else{ throw new Exception("Unknown label")}
+							}
+						}
+						
+						SimpleCfgNode:{
+							tripletPath.add(edgeSource.getTriplet)
+						}
+						
+						default:{ /*nothing*/ }
+					}//switch
 				
-				ERROR_STATEMENT:{
-					//nothing to do
-				}//ERROR_STATEMENT
-				
-				LOOP_STATEMENT:{
-					//TODO: To be implemented later
-				}//LOOP_STATEMENT
-				
-			}//switch
-		}//for
+				}//if
+			
+			]//forEach
 		
-		return result
+			tripletsPaths.add(tripletPath)
+			
+		]//forEach
+	
+		return tripletsPaths
+	
+	}//graphPathsToTripletsPaths
+	
+	
+	def private Node getNode(DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, String id){
 		
-	}
+		val nodeSet = graph.vertexSet
+		
+		try{
+			nodeSet.findFirst[ node | node.getId == id]
+		}
+		catch(Exception e){
+			throw new Exception("Error: Node with the id " + id + " not found! ")
+		}
 	
-	/**
-	 * Transforms a triplet to a 'list of list of triplet' format.
-	 */
-	def private tripletToListOfList(Triplet <List<String>, List<String>, List<String> > triplet){
-		val tmp = new ArrayList<Triplet <List<String>, List<String>, List<String> >>
-		tmp.add(triplet)
-		val List<List<Triplet <List<String>, List<String>, List<String> >>> tmpList = new ArrayList<List<Triplet <List<String>, List<String>, List<String> >>>
-		tmpList.add(tmp)
-		return tmpList
-	}//tripletToListOfList
-	
+	}//getNode
 	/**
 	 * Remove expressions that doesn't take part (directly) on MCDC computation.
 	 * In our context these expressions are those having an identifier of the form: '-N'
@@ -206,43 +217,6 @@ class MCDC_Module {
 		]
 		return result
 	 }
-	/**
-	 * enumerateModulePaths private method.
-	 * It builds paths by merging modules semi-paths
-	 */
-	def private buildPaths(List<List<Triplet<List<String>, List<String>, List<String>>>> list1, List<List<Triplet <List<String>, List<String>, List<String> >>> list2){
-		
-		val result = new ArrayList<List<Triplet <List<String>, List<String>, List<String>>>>
-		
-		val size1 = list1.size
-		val size2 = list2.size
-		
-		if (size2 == 0){
-			throw new RuntimeException("##### Invalid argument #####")
-		}
-		else{//list2 is not empty
-			
-			if( size1 == 0){
-				return list2
-			}
-			else{//list1 is not empty and list2 is not empty
-				for(e1: list1){
-					for(e2: list2){
-						val tmpList = new ArrayList<Triplet <List<String>, List<String>, List<String> >>
-						
-						tmpList.addAll(e1)
-						tmpList.addAll(e2) //tmpList now contains 'e1 + e2'
-	
-						result.add(tmpList)
-					}//for
-				}//for
-			}	
-		
-		}//else
-		
-		return result
-	
-	}//mergePaths	
 	
 	
 	/**

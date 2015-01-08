@@ -7,13 +7,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.xtext.mcdc.MCDC_Module
-import org.xtext.mcdc.MCDC_Statement
-import org.xtext.moduleDsl.IF_STATEMENT
 import org.xtext.moduleDsl.MODULE_DECL
-import org.xtext.mcdc.MCDC_Of_Decision2
-import org.xtext.mcdc.MCDC_Of_Decision3
-import org.xtext.moduleDsl.EXPRESSION
-import org.xtext.mcdc.MCDC_Of_Decision
 
 /**
  * Generates code from your model files on save.
@@ -29,13 +23,13 @@ class ModuleDslGenerator implements IGenerator {
 		}
 	}//doGenerate
 	
-	def compile (MODULE_DECL module){		
-		val mcdc = new MCDC_Module()
-		mcdc.testCFG(module)
-		return ""
-	}
+//	def compile (MODULE_DECL module){		
+//		val mcdc = new MCDC_Module()
+//		mcdc.testCFG(module)
+//		return ""
+//	}
 	
-/*	def compile (MODULE_DECL module){
+	def compile (MODULE_DECL module){
 		
 		val mcdc = new MCDC_Module()
 		val solutionsAndCoverage = mcdc.mcdcOfModule(module)
@@ -49,7 +43,7 @@ class ModuleDslGenerator implements IGenerator {
 			« var i = 0»
 			«FOR dataList: solutions»
 				/***********************************************************************************************/
-/*			
+			
 				  Test data «i = i + 1» :
 					
 					«FOR variable: dataList»		
@@ -65,16 +59,16 @@ class ModuleDslGenerator implements IGenerator {
 					
 					«ENDFOR»
 				/***********************************************************************************************/
-/*			«ENDFOR»
+			«ENDFOR»
 			
 				COVERAGE REPORT FOR THE MODULE «module.name» 
 			
 				«coveragereport»
 			
 		'''
-	} */
+	} 
 	
-	def compile(IF_STATEMENT ifst, String mcdcDecisionAlgo){
+/* 	def compile(IF_STATEMENT ifst, String mcdcDecisionAlgo){
 		
 		val condExp = ifst.ifCond
 		 mcdcDecision(mcdcDecisionAlgo, condExp)
@@ -106,6 +100,6 @@ class ModuleDslGenerator implements IGenerator {
 		}
 		
 		
-	}//mcdcDecision
+	}//mcdcDecision */
 
 }//ModuleDslGenerator

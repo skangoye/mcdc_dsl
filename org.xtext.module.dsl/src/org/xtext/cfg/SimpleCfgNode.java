@@ -1,35 +1,28 @@
 package org.xtext.cfg;
 
-import org.xtext.moduleDsl.ASSIGN_STATEMENT;
-import org.xtext.moduleDsl.EXPRESSION;
-import org.xtext.moduleDsl.VAR_REF;
+import java.util.List;
+
+import org.xtext.helper.Triplet;
+import org.xtext.moduleDsl.STATEMENT;
 
 public class SimpleCfgNode extends Node{
 	
-	private ASSIGN_STATEMENT assignment ;
-	private boolean isBooleanAssignment ;
+	private STATEMENT statement ; //Assignment or Variable declaration
+	private Triplet<List<String>, List<String>, List<String>> triplet ;
 	
-	public SimpleCfgNode(String nodeId, ASSIGN_STATEMENT assignmentStmt, boolean isBoolAssign) {
+	public SimpleCfgNode(String nodeId, STATEMENT statement, Triplet<List<String>, List<String>, List<String>> triplet) {
 		super(nodeId) ;
-		this.assignment = assignmentStmt ;
-		this.isBooleanAssignment = isBoolAssign ;
+		this.statement = statement ;
+		this.triplet = triplet ;
 	}
 	
-	public ASSIGN_STATEMENT getAssignment(){
-		return assignment ;
+	public STATEMENT getStatement(){
+		return this.statement ;
 	}
 	
-	public EXPRESSION getAssignmentRightHand(){
-		return assignment.getRight() ;
+	public Triplet<List<String>, List<String>, List<String>> getTriplet(){
+		return this.triplet ;
 	}
 	
-	public VAR_REF getAssignmentLefttHand(){
-		return assignment.getLeft() ;
-	}
-	
-	public boolean isBooleanAssignment(){
-		return isBooleanAssignment ;
-	}
-
 }//class
 

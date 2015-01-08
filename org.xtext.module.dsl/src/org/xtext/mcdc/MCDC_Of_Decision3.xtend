@@ -36,8 +36,8 @@ class MCDC_Of_Decision3 {
 	 */
 	 def mcdcOfBooleanExpression(EXPRESSION booleanExpression){
 	 	
-	 	System.out.println("MCDC of " + booleanExpression.stringReprOfExpression)
-	 	System.out.println
+//	 	System.out.println("MCDC of " + booleanExpression.stringReprOfExpression)
+//	 	System.out.println
 	 	
 	 	val dfsValues = new ArrayList<List<Triplet<String, String, String>>>
 	 	val finalMCDCValues = new TreeSet<String>
@@ -79,9 +79,9 @@ class MCDC_Of_Decision3 {
 	 		}
 	 	}
 	 	
-	 	System.out.println(" Total number of Values: " + (feasibleFalseValueWithWeight.size + feasibleTrueValueWithWeight.size))	 		 	
-	 	System.out.println(" listOfIndepVectors: " + listOfIndepVectors.size)	
-	 	System.out.println	
+//	 	System.out.println(" Total number of Values: " + (feasibleFalseValueWithWeight.size + feasibleTrueValueWithWeight.size))	 		 	
+//	 	System.out.println(" listOfIndepVectors: " + listOfIndepVectors.size)	
+//	 	System.out.println	
 		
 		//TODO: handle the case where listOfIndepVectors size is 0  	
 	
@@ -97,19 +97,18 @@ class MCDC_Of_Decision3 {
 	 			val couple1 = mostValuable.first
 	 			val couple2 = mostValuable.second
 	 			
-	 			System.out.println("[ " + "(" + couple1.first + "_" + couple1.second + "," +  couple2.first + "_" + couple2.second + ")" + " ]" )
+//	 			System.out.println("[ " + "(" + couple1.first + "_" + couple1.second + "," +  couple2.first + "_" + couple2.second + ")" + " ]" )
 
 	 			finalMCDCValues.add( FalseChar + couple1.first) //FalseChar is the outcome of couple1.first test
 	 			finalMCDCValues.add(TrueChar + couple2.first ) //TrueChar is the outcome of couple2.first test
 	 		
-	 			System.out.println("###############################################################")
-	 			System.out.println
 	 		}
 	 		
 	 	
 	 	]//forEach
 	 	
-	 	System.out.println( "Final Values: " + finalMCDCValues.toString)
+	 	System.out.println( "MCDC of " + booleanExpression.stringReprOfExpression + ": " + finalMCDCValues.toString)
+	 	System.out.println
 	 		 	
 	 	return finalMCDCValues.toList
 	 

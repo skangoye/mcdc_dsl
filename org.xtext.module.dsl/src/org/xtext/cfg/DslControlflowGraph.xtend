@@ -2,7 +2,6 @@ package org.xtext.cfg
 
 import java.util.ArrayList
 import java.util.List
-import org.jgrapht.graph.DefaultWeightedEdge
 import org.jgrapht.graph.DirectedWeightedMultigraph
 import org.xtext.moduleDsl.ASSIGN_STATEMENT
 import org.xtext.moduleDsl.AbstractVAR_DECL
@@ -11,33 +10,36 @@ import org.xtext.moduleDsl.MODULE_DECL
 import org.xtext.moduleDsl.STATEMENT
 
 import static extension org.xtext.utils.DslUtils.*
+import org.xtext.helper.Couple
+import org.xtext.mcdc.MCDC_Statement
 
 class DslControlflowGraph {
 	
 	var private static identifier = 0
-	val static final entry = "entry"
-	val static final exit = "exit"
+	val private static final entry = "entry"
+	val private static final exit = "exit"
+	val private static final trueLabel = "T"
+	val private static final falseLabel = "F"
+	val private static final emptyLabel = ""
 	
-	def static buildCFG(MODULE_DECL module){
+	def static buildCFG(MODULE_DECL module, MCDC_Statement mcdcStatement){
 		
-		val modelGraph = new DirectedWeightedMultigraph<Node, DefaultWeightedEdge>(DefaultWeightedEdge) 
+		val modelGraph = new DirectedWeightedMultigraph<Node, LabeledWeightedEdge>(LabeledWeightedEdge) 
 		
 		val entryNode = new Node(entry) //entry node creation
 		modelGraph.addVertex(entryNode) //adding entry node to the graph
 		
-		val predIdentList = new ArrayList<String> 
-		predIdentList.add(entry) //setting the predIdentList with the entry node
+		val predsIdentAndLabel = new ArrayList<Couple<String,String>> 
+		predsIdentAndLabel.add( new Couple(entry, emptyLabel) ) //setting the predIdentList with the entry node id and its outgoing edge label
 		
 		val stmtList = module.body.statements //module statements list
 	
-		val finalPredIdentList = modelGraph.toCFG(stmtList, predIdentList)
+		val finalPreds = modelGraph.toCFG(stmtList, predsIdentAndLabel, mcdcStatement)
 		
 		val exitNode = new Node(exit) //exit node creation
 		modelGraph.addVertex(exitNode) //adding exit node to the graph
 			
-		System.out.println(" Graph vertices:  " + modelGraph.vertexSet.size)
-
-		modelGraph.addEdges(finalPredIdentList, exitNode) //setting final edges to the exit node
+		modelGraph.addEdges(finalPreds, exitNode) //setting final edges to the exit node
 		
 		identifier = 0 //reset identifier
 		
@@ -45,9 +47,9 @@ class DslControlflowGraph {
 		
 	}//buildCFG
 	
-	def static private List<String> toCFG(DirectedWeightedMultigraph<Node, DefaultWeightedEdge> graph , List<STATEMENT> stmtList, List<String> predIdentList){
+	def static private List<Couple<String,String>> toCFG(DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph , List<STATEMENT> stmtList, List<Couple<String,String>> preds, MCDC_Statement mcdcStatement){
 			
-		System.out.println(" Statement list: " + stmtList.size)
+//		System.out.println(" Statement list: " + stmtList.size)
 		
 		val stmtListSize = stmtList.size //statement list size
 			
@@ -62,20 +64,22 @@ class DslControlflowGraph {
 				
 				AbstractVAR_DECL: {				
 					
-					val node = new Node(strIdentifier)
-					graph.addVertex(node)
-					graph.addEdges(predIdentList, node)
+					val varTriplet = mcdcStatement.mcdcVarStatement(currentStatement)
 					
-					val newPredIdentList = new ArrayList<String>
-					newPredIdentList.add(strIdentifier)
+					val node = new SimpleCfgNode(strIdentifier, currentStatement, varTriplet)
+					graph.addVertex(node)
+					graph.addEdges(preds, node)
+					
+					val newPreds = new ArrayList<Couple<String,String>>
+					newPreds.add( new Couple(strIdentifier, emptyLabel) )
 					
 					if (stmtList.size > 1){
 						stmtList.remove(0)
-						return graph.toCFG(stmtList, newPredIdentList)
+						return graph.toCFG(stmtList, newPreds, mcdcStatement)
 					}
 					else{//size is 1 because stmtList.get(0) doesn't raise an exception
-						val nodeArray = new ArrayList<String>
-						nodeArray.add(strIdentifier)
+						val nodeArray = new ArrayList<Couple<String,String>>
+						nodeArray.add( new Couple(strIdentifier,emptyLabel) )
 						return nodeArray						
 					}			
 				
@@ -83,20 +87,21 @@ class DslControlflowGraph {
 				
 				ASSIGN_STATEMENT: {
 					
-					val node = new SimpleCfgNode(strIdentifier, currentStatement, false)
+					val assignTriplet = mcdcStatement.mcdcAssignStatement(currentStatement)
+					val node = new SimpleCfgNode(strIdentifier, currentStatement, assignTriplet)
 					graph.addVertex(node)
-					graph.addEdges(predIdentList, node)
+					graph.addEdges(preds, node)
 	
-					val newPredIdentList = new ArrayList<String>
-					newPredIdentList.add(strIdentifier)
+					val newPreds = new ArrayList<Couple<String,String>>
+					newPreds.add( new Couple(strIdentifier,emptyLabel) )
 					
 					if (stmtList.size > 1){
 						stmtList.remove(0)					
-						return graph.toCFG(stmtList, newPredIdentList)
+						return graph.toCFG(stmtList, newPreds, mcdcStatement)
 					}
 					else{//size is 1 because stmtList.get(0) doesn't raise an exception
-						val nodeArray = new ArrayList<String>
-						nodeArray.add(strIdentifier)
+						val nodeArray = new ArrayList<Couple<String,String>>
+						nodeArray.add( new Couple(strIdentifier,emptyLabel) )
 						return nodeArray						
 					}			
 				
@@ -104,31 +109,33 @@ class DslControlflowGraph {
 				
 				IF_STATEMENT: {				
 					
-					val condition = currentStatement.ifCond
-					
-					val node = new CondCfgNode(strIdentifier, condition, false)
+					val condTriplet = mcdcStatement.mcdcIfThenElseStatement(currentStatement)
+
+					val node = new CondCfgNode(strIdentifier, currentStatement, condTriplet.first, condTriplet.second)
 					graph.addVertex(node)
-					graph.addEdges(predIdentList, node)
+					graph.addEdges(preds, node)
 					
-					val newPredIdentList = new ArrayList<String>
-					newPredIdentList.add(strIdentifier)
+					val ifPreds = new ArrayList<Couple<String,String>>
+					val elsePreds = new ArrayList<Couple<String,String>>
+					ifPreds.add( new Couple(strIdentifier, trueLabel) )
+					elsePreds.add( new Couple(strIdentifier, falseLabel) )
 					
 					val ifStmtList = currentStatement.ifst
 					val elseStmtList = currentStatement.elst
 					
-					val list1 = graph.toCFG(ifStmtList, newPredIdentList)
-					val list2 = graph.toCFG(elseStmtList, newPredIdentList)
+					val list1 = graph.toCFG(ifStmtList, ifPreds, mcdcStatement)
+					val list2 = graph.toCFG(elseStmtList, elsePreds, mcdcStatement)
 					
-					val cumulPredList = new ArrayList<String>
-					cumulPredList.addAll(list1)
-					cumulPredList.addAll(list2)
+					val cumulPreds = new ArrayList<Couple<String,String>>
+					cumulPreds.addAll(list1)
+					cumulPreds.addAll(list2)
 					
 					if (stmtList.size > 1){ //currentStatement is not the last element
 						stmtList.remove(0)
-						return graph.toCFG(stmtList, cumulPredList)
+						return graph.toCFG(stmtList, cumulPreds, mcdcStatement)
 					}
 					else{//size is 1 because stmtList.get(0) doesn't raise an exception
-						return cumulPredList					
+						return cumulPreds					
 					}			
 					
 				}//IF_STATEMENT
@@ -141,19 +148,10 @@ class DslControlflowGraph {
 		
 		}//if
 		
-		else{//size is 0
+		else{//size is 0		
 			
-//			val node = new Node(strIdentifier)
-//			graph.addVertex(node)
-//			graph.addEdges(predIdentList, node)
-			
-//			val newPredIdentList = new ArrayList<String>
-//			newPredIdentList.add(strIdentifier)
-
-//			val nodeArray = new ArrayList<String>
-//			nodeArray.add(strIdentifier)
-			return predIdentList  //nodeArray												
-	
+			return preds  //nodeArray													
+		
 		}//else
 		
 		
@@ -161,17 +159,24 @@ class DslControlflowGraph {
 	}//toCFG
 	
 	
-	def static private void addEdges(DirectedWeightedMultigraph<Node, DefaultWeightedEdge> graph , List<String> predIdentList, Node node){
-		System.out.println(predIdentList + " => " + node.id)
-		predIdentList.forEach[ 
-			predIdent | val predNode = graph.getNode(predIdent)
-			graph.addEdge(predNode, node)			
+	def static private void addEdges(DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph , List<Couple<String,String>> preds, Node node){
+		
+		preds.forEach[ pred | 
+			
+			val nodeId = pred.first 
+			val labelValue = pred.second
+			
+			val predNode = graph.getNode(nodeId)
+			val label = new LabeledWeightedEdge(labelValue)
+			
+			graph.addEdge(predNode, node, label)			
+		
 		]
 	
 	}//addEdges
 	
 		
-	def private static Node getNode(DirectedWeightedMultigraph<Node, DefaultWeightedEdge> graph, String id){
+	def private static Node getNode(DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, String id){
 		
 		val nodeSet = graph.vertexSet
 		

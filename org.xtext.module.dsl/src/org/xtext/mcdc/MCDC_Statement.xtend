@@ -28,6 +28,9 @@ class MCDC_Statement {
 	############################################################################################################################*/
 	
 	val private static final separator = "#"
+	val private static final truePattern = "T"
+	val private static final falsePattern = "F"
+	//val private static final separator = "#"
 	
 	var private boolIdentifier = -1 //Used for boolean expressions identification
 	var private notBoolIdentifier = -1 //Used for non-boolean expressions identification
@@ -301,7 +304,46 @@ class MCDC_Statement {
 		}
 	}//mcdcAssignStatement
 	
+	/**
+	 * return a MCDC triplet couple of a IF-THEN-ELSE statement
+	 */
+	def mcdcIfThenElseStatement(IF_STATEMENT statement){
+		
+		val ifBooleanExpression = (statement as IF_STATEMENT).ifCond
+		val mcdcValues = ifBooleanExpression.getDecisionMCDC 
+		
+		boolIdentifier.incrBooldentifier()
+		listOfBooleanExpression.add(boolIdentifier, ifBooleanExpression)
+		listOfMcdcValues.add(boolIdentifier, mcdcValues) //mcdcValues.reduceList
+		
+		val set = new TreeSet<String>
+		ifBooleanExpression.allVarInExpression(set)
+		listOfVarInBoolExpression.add(boolIdentifier, set.toList)
+			
+		//boolean variables involved in the expression
+		val List<String> varInExpression = new ArrayList<String>
+		varInExpression.add("*") //extra "variable" used to designate the outcome of the IF-THEN boolean expression
+		booleanVarInExpression(ifBooleanExpression, varInExpression)
+				
+		//split MCDC values into 2 disjoint parts: True for MCDC values that evaluate the expression to True
+		//False otherwise
+		val mcdcTrueValues =  (mcdcValues.filter[ it.charAt(0).toString == "T"].toList) 
+		val mcdcFalseValues = (mcdcValues.filter[ it.charAt(0).toString == "F"].toList)
+		
+		//create 2 types of sub-identifier
+		val List<String> subIdentifierT = new ArrayList<String>
+		val List<String> subIdentifierF = new ArrayList<String>
+		subIdentifierT.add(boolIdentifier + "T")
+		subIdentifierF.add(boolIdentifier + "F")
+
+		val trueTriplet = new Triplet(varInExpression, mcdcTrueValues, subIdentifierT) 
+		val falseTriplet = new Triplet(varInExpression, mcdcFalseValues, subIdentifierF) 
+				
+		return new Couple(trueTriplet, falseTriplet)
+
+	}//mcdcIfStatement
 	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 	/**
 	 * return a MCDC triplet of a IF-THEN-ELSE statement
 	 */
@@ -427,6 +469,8 @@ class MCDC_Statement {
 	
 	}//mcdcOfConditional
 	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+
 	
 	/**
 	 * Merge the different statements' MCDC values together, according to different constraints: execution paths, variables names

@@ -21,9 +21,16 @@ public class LabeledWeightedEdge extends DefaultWeightedEdge{
 //    public V getV2() {
 //        return v2;
 //    }
-
-    public String toString() {
+	
+	public String getLabel() {
         return label;
+    }
+	
+    public String toString() {
+        if(label.equals(""))
+        	return "*" ;
+        else
+        	return label;
     }
 
 }
