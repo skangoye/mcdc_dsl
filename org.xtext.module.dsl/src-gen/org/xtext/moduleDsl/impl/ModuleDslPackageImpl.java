@@ -339,6 +339,13 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
    * <!-- end-user-doc -->
    * @generated
    */
+  private EClass moduloEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   private EClass notEClass = null;
 
   /**
@@ -1015,6 +1022,16 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
    * <!-- end-user-doc -->
    * @generated
    */
+  public EAttribute getERROR_STATEMENT_Message()
+  {
+    return (EAttribute)erroR_STATEMENTEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EClass getASSIGN_STATEMENT()
   {
     return assigN_STATEMENTEClass;
@@ -1495,6 +1512,36 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
    * <!-- end-user-doc -->
    * @generated
    */
+  public EClass getMODULO()
+  {
+    return moduloEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getMODULO_Left()
+  {
+    return (EReference)moduloEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getMODULO_Right()
+  {
+    return (EReference)moduloEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EClass getNOT()
   {
     return notEClass;
@@ -1777,6 +1824,7 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
     createEReference(looP_STATEMENTEClass, LOOP_STATEMENT__LOOP_COND);
 
     erroR_STATEMENTEClass = createEClass(ERROR_STATEMENT);
+    createEAttribute(erroR_STATEMENTEClass, ERROR_STATEMENT__MESSAGE);
 
     assigN_STATEMENTEClass = createEClass(ASSIGN_STATEMENT);
     createEReference(assigN_STATEMENTEClass, ASSIGN_STATEMENT__LEFT);
@@ -1844,6 +1892,10 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
     divEClass = createEClass(DIV);
     createEReference(divEClass, DIV__LEFT);
     createEReference(divEClass, DIV__RIGHT);
+
+    moduloEClass = createEClass(MODULO);
+    createEReference(moduloEClass, MODULO__LEFT);
+    createEReference(moduloEClass, MODULO__RIGHT);
 
     notEClass = createEClass(NOT);
     createEReference(notEClass, NOT__EXP);
@@ -1928,6 +1980,7 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
     subEClass.getESuperTypes().add(this.getEXPRESSION());
     multEClass.getESuperTypes().add(this.getEXPRESSION());
     divEClass.getESuperTypes().add(this.getEXPRESSION());
+    moduloEClass.getESuperTypes().add(this.getEXPRESSION());
     notEClass.getESuperTypes().add(this.getEXPRESSION());
     intConstantEClass.getESuperTypes().add(this.getEXPRESSION());
     realConstantEClass.getESuperTypes().add(this.getEXPRESSION());
@@ -2016,6 +2069,7 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
     initEReference(getLOOP_STATEMENT_LoopCond(), this.getEXPRESSION(), null, "loopCond", null, 0, 1, org.xtext.moduleDsl.LOOP_STATEMENT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(erroR_STATEMENTEClass, org.xtext.moduleDsl.ERROR_STATEMENT.class, "ERROR_STATEMENT", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getERROR_STATEMENT_Message(), ecorePackage.getEString(), "message", null, 0, 1, org.xtext.moduleDsl.ERROR_STATEMENT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(assigN_STATEMENTEClass, org.xtext.moduleDsl.ASSIGN_STATEMENT.class, "ASSIGN_STATEMENT", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEReference(getASSIGN_STATEMENT_Left(), this.getVAR_REF(), null, "left", null, 0, 1, org.xtext.moduleDsl.ASSIGN_STATEMENT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -2083,6 +2137,10 @@ public class ModuleDslPackageImpl extends EPackageImpl implements ModuleDslPacka
     initEClass(divEClass, org.xtext.moduleDsl.DIV.class, "DIV", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEReference(getDIV_Left(), this.getEXPRESSION(), null, "left", null, 0, 1, org.xtext.moduleDsl.DIV.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDIV_Right(), this.getEXPRESSION(), null, "right", null, 0, 1, org.xtext.moduleDsl.DIV.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(moduloEClass, org.xtext.moduleDsl.MODULO.class, "MODULO", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEReference(getMODULO_Left(), this.getEXPRESSION(), null, "left", null, 0, 1, org.xtext.moduleDsl.MODULO.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getMODULO_Right(), this.getEXPRESSION(), null, "right", null, 0, 1, org.xtext.moduleDsl.MODULO.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(notEClass, org.xtext.moduleDsl.NOT.class, "NOT", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEReference(getNOT_Exp(), this.getEXPRESSION(), null, "exp", null, 0, 1, org.xtext.moduleDsl.NOT.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

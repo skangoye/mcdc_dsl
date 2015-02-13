@@ -827,13 +827,22 @@ public interface ModuleDslPackage extends EPackage
   int ERROR_STATEMENT = 22;
 
   /**
+   * The feature id for the '<em><b>Message</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int ERROR_STATEMENT__MESSAGE = STATEMENT_FEATURE_COUNT + 0;
+
+  /**
    * The number of structural features of the '<em>ERROR STATEMENT</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int ERROR_STATEMENT_FEATURE_COUNT = STATEMENT_FEATURE_COUNT + 0;
+  int ERROR_STATEMENT_FEATURE_COUNT = STATEMENT_FEATURE_COUNT + 1;
 
   /**
    * The meta object id for the '{@link org.xtext.moduleDsl.impl.ASSIGN_STATEMENTImpl <em>ASSIGN STATEMENT</em>}' class.
@@ -1458,6 +1467,43 @@ public interface ModuleDslPackage extends EPackage
   int DIV_FEATURE_COUNT = EXPRESSION_FEATURE_COUNT + 2;
 
   /**
+   * The meta object id for the '{@link org.xtext.moduleDsl.impl.MODULOImpl <em>MODULO</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see org.xtext.moduleDsl.impl.MODULOImpl
+   * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getMODULO()
+   * @generated
+   */
+  int MODULO = 42;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MODULO__LEFT = EXPRESSION_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MODULO__RIGHT = EXPRESSION_FEATURE_COUNT + 1;
+
+  /**
+   * The number of structural features of the '<em>MODULO</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MODULO_FEATURE_COUNT = EXPRESSION_FEATURE_COUNT + 2;
+
+  /**
    * The meta object id for the '{@link org.xtext.moduleDsl.impl.NOTImpl <em>NOT</em>}' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -1465,7 +1511,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getNOT()
    * @generated
    */
-  int NOT = 42;
+  int NOT = 43;
 
   /**
    * The feature id for the '<em><b>Exp</b></em>' containment reference.
@@ -1493,7 +1539,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getintConstant()
    * @generated
    */
-  int INT_CONSTANT = 43;
+  int INT_CONSTANT = 44;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -1521,7 +1567,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getrealConstant()
    * @generated
    */
-  int REAL_CONSTANT = 44;
+  int REAL_CONSTANT = 45;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -1549,7 +1595,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getstrConstant()
    * @generated
    */
-  int STR_CONSTANT = 45;
+  int STR_CONSTANT = 46;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -1577,7 +1623,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getenumConstant()
    * @generated
    */
-  int ENUM_CONSTANT = 46;
+  int ENUM_CONSTANT = 47;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -1605,7 +1651,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getboolConstant()
    * @generated
    */
-  int BOOL_CONSTANT = 47;
+  int BOOL_CONSTANT = 48;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -1633,7 +1679,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getbitConstant()
    * @generated
    */
-  int BIT_CONSTANT = 48;
+  int BIT_CONSTANT = 49;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -1661,7 +1707,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#gethexConstant()
    * @generated
    */
-  int HEX_CONSTANT = 49;
+  int HEX_CONSTANT = 50;
 
   /**
    * The feature id for the '<em><b>Value</b></em>' attribute.
@@ -1689,7 +1735,7 @@ public interface ModuleDslPackage extends EPackage
    * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getVarExpRef()
    * @generated
    */
-  int VAR_EXP_REF = 50;
+  int VAR_EXP_REF = 51;
 
   /**
    * The feature id for the '<em><b>Vref</b></em>' reference.
@@ -2293,6 +2339,17 @@ public interface ModuleDslPackage extends EPackage
   EClass getERROR_STATEMENT();
 
   /**
+   * Returns the meta object for the attribute '{@link org.xtext.moduleDsl.ERROR_STATEMENT#getMessage <em>Message</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Message</em>'.
+   * @see org.xtext.moduleDsl.ERROR_STATEMENT#getMessage()
+   * @see #getERROR_STATEMENT()
+   * @generated
+   */
+  EAttribute getERROR_STATEMENT_Message();
+
+  /**
    * Returns the meta object for class '{@link org.xtext.moduleDsl.ASSIGN_STATEMENT <em>ASSIGN STATEMENT</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -2800,6 +2857,38 @@ public interface ModuleDslPackage extends EPackage
    * @generated
    */
   EReference getDIV_Right();
+
+  /**
+   * Returns the meta object for class '{@link org.xtext.moduleDsl.MODULO <em>MODULO</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>MODULO</em>'.
+   * @see org.xtext.moduleDsl.MODULO
+   * @generated
+   */
+  EClass getMODULO();
+
+  /**
+   * Returns the meta object for the containment reference '{@link org.xtext.moduleDsl.MODULO#getLeft <em>Left</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Left</em>'.
+   * @see org.xtext.moduleDsl.MODULO#getLeft()
+   * @see #getMODULO()
+   * @generated
+   */
+  EReference getMODULO_Left();
+
+  /**
+   * Returns the meta object for the containment reference '{@link org.xtext.moduleDsl.MODULO#getRight <em>Right</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Right</em>'.
+   * @see org.xtext.moduleDsl.MODULO#getRight()
+   * @see #getMODULO()
+   * @generated
+   */
+  EReference getMODULO_Right();
 
   /**
    * Returns the meta object for class '{@link org.xtext.moduleDsl.NOT <em>NOT</em>}'.
@@ -3500,6 +3589,14 @@ public interface ModuleDslPackage extends EPackage
     EClass ERROR_STATEMENT = eINSTANCE.getERROR_STATEMENT();
 
     /**
+     * The meta object literal for the '<em><b>Message</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute ERROR_STATEMENT__MESSAGE = eINSTANCE.getERROR_STATEMENT_Message();
+
+    /**
      * The meta object literal for the '{@link org.xtext.moduleDsl.impl.ASSIGN_STATEMENTImpl <em>ASSIGN STATEMENT</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -3920,6 +4017,32 @@ public interface ModuleDslPackage extends EPackage
      * @generated
      */
     EReference DIV__RIGHT = eINSTANCE.getDIV_Right();
+
+    /**
+     * The meta object literal for the '{@link org.xtext.moduleDsl.impl.MODULOImpl <em>MODULO</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see org.xtext.moduleDsl.impl.MODULOImpl
+     * @see org.xtext.moduleDsl.impl.ModuleDslPackageImpl#getMODULO()
+     * @generated
+     */
+    EClass MODULO = eINSTANCE.getMODULO();
+
+    /**
+     * The meta object literal for the '<em><b>Left</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference MODULO__LEFT = eINSTANCE.getMODULO_Left();
+
+    /**
+     * The meta object literal for the '<em><b>Right</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference MODULO__RIGHT = eINSTANCE.getMODULO_Right();
 
     /**
      * The meta object literal for the '{@link org.xtext.moduleDsl.impl.NOTImpl <em>NOT</em>}' class.

@@ -1055,13 +1055,17 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 		private final Group cGroup = (Group)rule.eContents().get(1);
 		private final Keyword cErrorKeyword_0 = (Keyword)cGroup.eContents().get(0);
 		private final Action cERROR_STATEMENTAction_1 = (Action)cGroup.eContents().get(1);
-		private final Keyword cSemicolonKeyword_2 = (Keyword)cGroup.eContents().get(2);
+		private final Keyword cLeftParenthesisKeyword_2 = (Keyword)cGroup.eContents().get(2);
+		private final Assignment cMessageAssignment_3 = (Assignment)cGroup.eContents().get(3);
+		private final RuleCall cMessageSTRINGTerminalRuleCall_3_0 = (RuleCall)cMessageAssignment_3.eContents().get(0);
+		private final Keyword cRightParenthesisKeyword_4 = (Keyword)cGroup.eContents().get(4);
+		private final Keyword cSemicolonKeyword_5 = (Keyword)cGroup.eContents().get(5);
 		
 		//ERROR_STATEMENT:
-		//	"error" {ERROR_STATEMENT} ";"?;
+		//	"error" {ERROR_STATEMENT} "(" message=STRING ")" ";"?;
 		public ParserRule getRule() { return rule; }
 
-		//"error" {ERROR_STATEMENT} ";"?
+		//"error" {ERROR_STATEMENT} "(" message=STRING ")" ";"?
 		public Group getGroup() { return cGroup; }
 
 		//"error"
@@ -1070,8 +1074,20 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 		//{ERROR_STATEMENT}
 		public Action getERROR_STATEMENTAction_1() { return cERROR_STATEMENTAction_1; }
 
+		//"("
+		public Keyword getLeftParenthesisKeyword_2() { return cLeftParenthesisKeyword_2; }
+
+		//message=STRING
+		public Assignment getMessageAssignment_3() { return cMessageAssignment_3; }
+
+		//STRING
+		public RuleCall getMessageSTRINGTerminalRuleCall_3_0() { return cMessageSTRINGTerminalRuleCall_3_0; }
+
+		//")"
+		public Keyword getRightParenthesisKeyword_4() { return cRightParenthesisKeyword_4; }
+
 		//";"?
-		public Keyword getSemicolonKeyword_2() { return cSemicolonKeyword_2; }
+		public Keyword getSemicolonKeyword_5() { return cSemicolonKeyword_5; }
 	}
 
 	public class ASSIGN_STATEMENTElements extends AbstractParserRuleElementFinder {
@@ -1379,7 +1395,7 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 	public class MULT_DIVElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "MULT_DIV");
 		private final Group cGroup = (Group)rule.eContents().get(1);
-		private final RuleCall cPrimaryExpressionParserRuleCall_0 = (RuleCall)cGroup.eContents().get(0);
+		private final RuleCall cMODULOParserRuleCall_0 = (RuleCall)cGroup.eContents().get(0);
 		private final Group cGroup_1 = (Group)cGroup.eContents().get(1);
 		private final Alternatives cAlternatives_1_0 = (Alternatives)cGroup_1.eContents().get(0);
 		private final Group cGroup_1_0_0 = (Group)cAlternatives_1_0.eContents().get(0);
@@ -1389,19 +1405,19 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 		private final Action cDIVLeftAction_1_0_1_0 = (Action)cGroup_1_0_1.eContents().get(0);
 		private final Keyword cSolidusKeyword_1_0_1_1 = (Keyword)cGroup_1_0_1.eContents().get(1);
 		private final Assignment cRightAssignment_1_1 = (Assignment)cGroup_1.eContents().get(1);
-		private final RuleCall cRightPrimaryExpressionParserRuleCall_1_1_0 = (RuleCall)cRightAssignment_1_1.eContents().get(0);
+		private final RuleCall cRightMODULOParserRuleCall_1_1_0 = (RuleCall)cRightAssignment_1_1.eContents().get(0);
 		
 		//MULT_DIV returns EXPRESSION:
-		//	PrimaryExpression (({MULT.left=current} "*" | {DIV.left=current} "/") right=PrimaryExpression)*;
+		//	MODULO (({MULT.left=current} "*" | {DIV.left=current} "/") right=MODULO)*;
 		public ParserRule getRule() { return rule; }
 
-		//PrimaryExpression (({MULT.left=current} "*" | {DIV.left=current} "/") right=PrimaryExpression)*
+		//MODULO (({MULT.left=current} "*" | {DIV.left=current} "/") right=MODULO)*
 		public Group getGroup() { return cGroup; }
 
-		//PrimaryExpression
-		public RuleCall getPrimaryExpressionParserRuleCall_0() { return cPrimaryExpressionParserRuleCall_0; }
+		//MODULO
+		public RuleCall getMODULOParserRuleCall_0() { return cMODULOParserRuleCall_0; }
 
-		//(({MULT.left=current} "*" | {DIV.left=current} "/") right=PrimaryExpression)*
+		//(({MULT.left=current} "*" | {DIV.left=current} "/") right=MODULO)*
 		public Group getGroup_1() { return cGroup_1; }
 
 		//{MULT.left=current} "*" | {DIV.left=current} "/"
@@ -1425,11 +1441,47 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 		//"/"
 		public Keyword getSolidusKeyword_1_0_1_1() { return cSolidusKeyword_1_0_1_1; }
 
-		//right=PrimaryExpression
+		//right=MODULO
 		public Assignment getRightAssignment_1_1() { return cRightAssignment_1_1; }
 
+		//MODULO
+		public RuleCall getRightMODULOParserRuleCall_1_1_0() { return cRightMODULOParserRuleCall_1_1_0; }
+	}
+
+	public class MODULOElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "MODULO");
+		private final Group cGroup = (Group)rule.eContents().get(1);
+		private final RuleCall cPrimaryExpressionParserRuleCall_0 = (RuleCall)cGroup.eContents().get(0);
+		private final Group cGroup_1 = (Group)cGroup.eContents().get(1);
+		private final Action cMODULOLeftAction_1_0 = (Action)cGroup_1.eContents().get(0);
+		private final Keyword cPercentSignKeyword_1_1 = (Keyword)cGroup_1.eContents().get(1);
+		private final Assignment cRightAssignment_1_2 = (Assignment)cGroup_1.eContents().get(2);
+		private final RuleCall cRightPrimaryExpressionParserRuleCall_1_2_0 = (RuleCall)cRightAssignment_1_2.eContents().get(0);
+		
+		//MODULO returns EXPRESSION:
+		//	PrimaryExpression ({MODULO.left=current} "%" right=PrimaryExpression)*;
+		public ParserRule getRule() { return rule; }
+
+		//PrimaryExpression ({MODULO.left=current} "%" right=PrimaryExpression)*
+		public Group getGroup() { return cGroup; }
+
 		//PrimaryExpression
-		public RuleCall getRightPrimaryExpressionParserRuleCall_1_1_0() { return cRightPrimaryExpressionParserRuleCall_1_1_0; }
+		public RuleCall getPrimaryExpressionParserRuleCall_0() { return cPrimaryExpressionParserRuleCall_0; }
+
+		//({MODULO.left=current} "%" right=PrimaryExpression)*
+		public Group getGroup_1() { return cGroup_1; }
+
+		//{MODULO.left=current}
+		public Action getMODULOLeftAction_1_0() { return cMODULOLeftAction_1_0; }
+
+		//"%"
+		public Keyword getPercentSignKeyword_1_1() { return cPercentSignKeyword_1_1; }
+
+		//right=PrimaryExpression
+		public Assignment getRightAssignment_1_2() { return cRightAssignment_1_2; }
+
+		//PrimaryExpression
+		public RuleCall getRightPrimaryExpressionParserRuleCall_1_2_0() { return cRightPrimaryExpressionParserRuleCall_1_2_0; }
 	}
 
 	public class PrimaryExpressionElements extends AbstractParserRuleElementFinder {
@@ -1717,6 +1769,7 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 	private COMPARISONElements pCOMPARISON;
 	private ADD_SUBElements pADD_SUB;
 	private MULT_DIVElements pMULT_DIV;
+	private MODULOElements pMODULO;
 	private PrimaryExpressionElements pPrimaryExpression;
 	private AtomicElements pAtomic;
 	private DECIMALElements pDECIMAL;
@@ -2005,7 +2058,7 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//ERROR_STATEMENT:
-	//	"error" {ERROR_STATEMENT} ";"?;
+	//	"error" {ERROR_STATEMENT} "(" message=STRING ")" ";"?;
 	public ERROR_STATEMENTElements getERROR_STATEMENTAccess() {
 		return (pERROR_STATEMENT != null) ? pERROR_STATEMENT : (pERROR_STATEMENT = new ERROR_STATEMENTElements());
 	}
@@ -2097,13 +2150,23 @@ public class ModuleDslGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//MULT_DIV returns EXPRESSION:
-	//	PrimaryExpression (({MULT.left=current} "*" | {DIV.left=current} "/") right=PrimaryExpression)*;
+	//	MODULO (({MULT.left=current} "*" | {DIV.left=current} "/") right=MODULO)*;
 	public MULT_DIVElements getMULT_DIVAccess() {
 		return (pMULT_DIV != null) ? pMULT_DIV : (pMULT_DIV = new MULT_DIVElements());
 	}
 	
 	public ParserRule getMULT_DIVRule() {
 		return getMULT_DIVAccess().getRule();
+	}
+
+	//MODULO returns EXPRESSION:
+	//	PrimaryExpression ({MODULO.left=current} "%" right=PrimaryExpression)*;
+	public MODULOElements getMODULOAccess() {
+		return (pMODULO != null) ? pMODULO : (pMODULO = new MODULOElements());
+	}
+	
+	public ParserRule getMODULORule() {
+		return getMODULOAccess().getRule();
 	}
 
 	//PrimaryExpression returns EXPRESSION:

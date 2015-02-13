@@ -94,7 +94,9 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="loopCond" eType="#//EXPRESSION"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ERROR_STATEMENT" eSuperTypes="#//STATEMENT"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ERROR_STATEMENT" eSuperTypes="#//STATEMENT">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ASSIGN_STATEMENT" eSuperTypes="#//STATEMENT">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//VAR_REF"
         containment="true"/>
@@ -174,6 +176,12 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="DIV" eSuperTypes="#//EXPRESSION">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//EXPRESSION"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//EXPRESSION"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MODULO" eSuperTypes="#//EXPRESSION">
     <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//EXPRESSION"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//EXPRESSION"

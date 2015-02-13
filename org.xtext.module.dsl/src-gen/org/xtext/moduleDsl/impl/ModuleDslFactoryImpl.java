@@ -106,6 +106,7 @@ public class ModuleDslFactoryImpl extends EFactoryImpl implements ModuleDslFacto
       case ModuleDslPackage.SUB: return createSUB();
       case ModuleDslPackage.MULT: return createMULT();
       case ModuleDslPackage.DIV: return createDIV();
+      case ModuleDslPackage.MODULO: return createMODULO();
       case ModuleDslPackage.NOT: return createNOT();
       case ModuleDslPackage.INT_CONSTANT: return createintConstant();
       case ModuleDslPackage.REAL_CONSTANT: return createrealConstant();
@@ -580,6 +581,17 @@ public class ModuleDslFactoryImpl extends EFactoryImpl implements ModuleDslFacto
   {
     DIVImpl div = new DIVImpl();
     return div;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public MODULO createMODULO()
+  {
+    MODULOImpl modulo = new MODULOImpl();
+    return modulo;
   }
 
   /**

@@ -401,6 +401,15 @@ public interface ModuleDslFactory extends EFactory
   DIV createDIV();
 
   /**
+   * Returns a new object of class '<em>MODULO</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>MODULO</em>'.
+   * @generated
+   */
+  MODULO createMODULO();
+
+  /**
    * Returns a new object of class '<em>NOT</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

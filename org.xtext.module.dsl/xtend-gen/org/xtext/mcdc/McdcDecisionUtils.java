@@ -23,6 +23,7 @@ import org.xtext.moduleDsl.INTERFACE;
 import org.xtext.moduleDsl.LSET;
 import org.xtext.moduleDsl.Literal;
 import org.xtext.moduleDsl.MODULE_DECL;
+import org.xtext.moduleDsl.MODULO;
 import org.xtext.moduleDsl.MULT;
 import org.xtext.moduleDsl.NOT;
 import org.xtext.moduleDsl.OR;
@@ -358,6 +359,16 @@ public class McdcDecisionUtils {
         EXPRESSION _right = ((DIV)expression).getRight();
         Object _solverExpression_1 = McdcDecisionUtils.toSolverExpression(pb, _right, outcome);
         _switchResult = pb.div(_solverExpression, _solverExpression_1);
+      }
+    }
+    if (!_matched) {
+      if (expression instanceof MODULO) {
+        _matched=true;
+        EXPRESSION _left = ((MODULO)expression).getLeft();
+        Object _solverExpression = McdcDecisionUtils.toSolverExpression(pb, _left, outcome);
+        EXPRESSION _right = ((MODULO)expression).getRight();
+        Object _solverExpression_1 = McdcDecisionUtils.toSolverExpression(pb, _right, outcome);
+        _switchResult = pb.mod(_solverExpression, _solverExpression_1);
       }
     }
     if (!_matched) {

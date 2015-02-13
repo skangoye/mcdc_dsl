@@ -80,7 +80,9 @@
     <genClasses ecoreClass="ModuleDsl.ecore#//LOOP_STATEMENT">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//LOOP_STATEMENT/loopCond"/>
     </genClasses>
-    <genClasses ecoreClass="ModuleDsl.ecore#//ERROR_STATEMENT"/>
+    <genClasses ecoreClass="ModuleDsl.ecore#//ERROR_STATEMENT">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ModuleDsl.ecore#//ERROR_STATEMENT/message"/>
+    </genClasses>
     <genClasses ecoreClass="ModuleDsl.ecore#//ASSIGN_STATEMENT">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//ASSIGN_STATEMENT/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//ASSIGN_STATEMENT/right"/>
@@ -146,6 +148,10 @@
     <genClasses ecoreClass="ModuleDsl.ecore#//DIV">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//DIV/left"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//DIV/right"/>
+    </genClasses>
+    <genClasses ecoreClass="ModuleDsl.ecore#//MODULO">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//MODULO/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//MODULO/right"/>
     </genClasses>
     <genClasses ecoreClass="ModuleDsl.ecore#//NOT">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference ModuleDsl.ecore#//NOT/exp"/>

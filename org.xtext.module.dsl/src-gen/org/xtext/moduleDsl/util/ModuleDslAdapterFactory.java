@@ -285,6 +285,11 @@ public class ModuleDslAdapterFactory extends AdapterFactoryImpl
         return createDIVAdapter();
       }
       @Override
+      public Adapter caseMODULO(MODULO object)
+      {
+        return createMODULOAdapter();
+      }
+      @Override
       public Adapter caseNOT(NOT object)
       {
         return createNOTAdapter();
@@ -977,6 +982,21 @@ public class ModuleDslAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createDIVAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link org.xtext.moduleDsl.MODULO <em>MODULO</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see org.xtext.moduleDsl.MODULO
+   * @generated
+   */
+  public Adapter createMODULOAdapter()
   {
     return null;
   }

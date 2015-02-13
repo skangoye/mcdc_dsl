@@ -21,7 +21,7 @@ public class ModuleDslSyntacticSequencer extends AbstractSyntacticSequencer {
 	protected AbstractElementAlias match_CRITERION_DECL_SemicolonKeyword_4_q;
 	protected AbstractElementAlias match_CST_DECL_SemicolonKeyword_6_q;
 	protected AbstractElementAlias match_DATASEL_DECL_SemicolonKeyword_5_q;
-	protected AbstractElementAlias match_ERROR_STATEMENT_SemicolonKeyword_2_q;
+	protected AbstractElementAlias match_ERROR_STATEMENT_SemicolonKeyword_5_q;
 	protected AbstractElementAlias match_PrimaryExpression_LeftParenthesisKeyword_0_0_a;
 	protected AbstractElementAlias match_PrimaryExpression_LeftParenthesisKeyword_0_0_p;
 	protected AbstractElementAlias match_TmpVAR_DECL_SemicolonKeyword_5_q;
@@ -34,7 +34,7 @@ public class ModuleDslSyntacticSequencer extends AbstractSyntacticSequencer {
 		match_CRITERION_DECL_SemicolonKeyword_4_q = new TokenAlias(false, true, grammarAccess.getCRITERION_DECLAccess().getSemicolonKeyword_4());
 		match_CST_DECL_SemicolonKeyword_6_q = new TokenAlias(false, true, grammarAccess.getCST_DECLAccess().getSemicolonKeyword_6());
 		match_DATASEL_DECL_SemicolonKeyword_5_q = new TokenAlias(false, true, grammarAccess.getDATASEL_DECLAccess().getSemicolonKeyword_5());
-		match_ERROR_STATEMENT_SemicolonKeyword_2_q = new TokenAlias(false, true, grammarAccess.getERROR_STATEMENTAccess().getSemicolonKeyword_2());
+		match_ERROR_STATEMENT_SemicolonKeyword_5_q = new TokenAlias(false, true, grammarAccess.getERROR_STATEMENTAccess().getSemicolonKeyword_5());
 		match_PrimaryExpression_LeftParenthesisKeyword_0_0_a = new TokenAlias(true, true, grammarAccess.getPrimaryExpressionAccess().getLeftParenthesisKeyword_0_0());
 		match_PrimaryExpression_LeftParenthesisKeyword_0_0_p = new TokenAlias(true, false, grammarAccess.getPrimaryExpressionAccess().getLeftParenthesisKeyword_0_0());
 		match_TmpVAR_DECL_SemicolonKeyword_5_q = new TokenAlias(false, true, grammarAccess.getTmpVAR_DECLAccess().getSemicolonKeyword_5());
@@ -61,8 +61,8 @@ public class ModuleDslSyntacticSequencer extends AbstractSyntacticSequencer {
 				emit_CST_DECL_SemicolonKeyword_6_q(semanticObject, getLastNavigableState(), syntaxNodes);
 			else if(match_DATASEL_DECL_SemicolonKeyword_5_q.equals(syntax))
 				emit_DATASEL_DECL_SemicolonKeyword_5_q(semanticObject, getLastNavigableState(), syntaxNodes);
-			else if(match_ERROR_STATEMENT_SemicolonKeyword_2_q.equals(syntax))
-				emit_ERROR_STATEMENT_SemicolonKeyword_2_q(semanticObject, getLastNavigableState(), syntaxNodes);
+			else if(match_ERROR_STATEMENT_SemicolonKeyword_5_q.equals(syntax))
+				emit_ERROR_STATEMENT_SemicolonKeyword_5_q(semanticObject, getLastNavigableState(), syntaxNodes);
 			else if(match_PrimaryExpression_LeftParenthesisKeyword_0_0_a.equals(syntax))
 				emit_PrimaryExpression_LeftParenthesisKeyword_0_0_a(semanticObject, getLastNavigableState(), syntaxNodes);
 			else if(match_PrimaryExpression_LeftParenthesisKeyword_0_0_p.equals(syntax))
@@ -111,7 +111,7 @@ public class ModuleDslSyntacticSequencer extends AbstractSyntacticSequencer {
 	 * Syntax:
 	 *     ';'?
 	 */
-	protected void emit_ERROR_STATEMENT_SemicolonKeyword_2_q(EObject semanticObject, ISynNavigable transition, List<INode> nodes) {
+	protected void emit_ERROR_STATEMENT_SemicolonKeyword_5_q(EObject semanticObject, ISynNavigable transition, List<INode> nodes) {
 		acceptNodes(transition, nodes);
 	}
 	

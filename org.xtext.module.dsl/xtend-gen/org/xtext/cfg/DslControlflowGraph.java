@@ -14,6 +14,9 @@ import org.xtext.cfg.CondCfgNode;
 import org.xtext.cfg.LabeledWeightedEdge;
 import org.xtext.cfg.Node;
 import org.xtext.cfg.SimpleCfgNode;
+import org.xtext.helper.Couple;
+import org.xtext.helper.Triplet;
+import org.xtext.mcdc.MCDC_Statement;
 import org.xtext.moduleDsl.ASSIGN_STATEMENT;
 import org.xtext.moduleDsl.AbstractVAR_DECL;
 import org.xtext.moduleDsl.BODY;
@@ -32,115 +35,145 @@ public class DslControlflowGraph {
   
   private final static String exit = "exit";
   
-  public static DirectedWeightedMultigraph<Node, LabeledWeightedEdge> buildCFG(final MODULE_DECL module) {
+  private final static String trueLabel = "T";
+  
+  private final static String falseLabel = "F";
+  
+  private final static String emptyLabel = "";
+  
+  public static DirectedWeightedMultigraph<Node, LabeledWeightedEdge> buildCFG(final MODULE_DECL module, final MCDC_Statement mcdcStatement) {
     final DirectedWeightedMultigraph<Node, LabeledWeightedEdge> modelGraph = new DirectedWeightedMultigraph<Node, LabeledWeightedEdge>(LabeledWeightedEdge.class);
     final Node entryNode = new Node(DslControlflowGraph.entry);
     modelGraph.addVertex(entryNode);
-    final ArrayList<String> predIdentList = new ArrayList<String>();
-    predIdentList.add(DslControlflowGraph.entry);
+    final ArrayList<Couple<String, String>> predsIdentAndLabel = new ArrayList<Couple<String, String>>();
+    Couple<String, String> _couple = new Couple<String, String>(DslControlflowGraph.entry, DslControlflowGraph.emptyLabel);
+    predsIdentAndLabel.add(_couple);
     BODY _body = module.getBody();
     final EList<STATEMENT> stmtList = _body.getStatements();
-    final List<String> finalPredIdentList = DslControlflowGraph.toCFG(modelGraph, stmtList, predIdentList);
+    final List<Couple<String, String>> finalPreds = DslControlflowGraph.toCFG(modelGraph, stmtList, predsIdentAndLabel, mcdcStatement);
     final Node exitNode = new Node(DslControlflowGraph.exit);
     modelGraph.addVertex(exitNode);
-    DslControlflowGraph.addEdges(modelGraph, finalPredIdentList, exitNode);
+    DslControlflowGraph.addEdges(modelGraph, finalPreds, exitNode);
     DslControlflowGraph.identifier = 0;
     return modelGraph;
   }
   
-  private static List<String> toCFG(final DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, final List<STATEMENT> stmtList, final List<String> predIdentList) {
-    List<String> _xtrycatchfinallyexpression = null;
-    try {
-      final STATEMENT currentStatement = stmtList.get(0);
-      DslControlflowGraph.identifier = (DslControlflowGraph.identifier + 1);
-      final String strIdentifier = Integer.valueOf(DslControlflowGraph.identifier).toString();
-      boolean _matched = false;
-      if (!_matched) {
-        if (currentStatement instanceof AbstractVAR_DECL) {
-          _matched=true;
-          final Node node = new Node(strIdentifier);
-          graph.addVertex(node);
-          DslControlflowGraph.addEdges(graph, predIdentList, node);
-          final ArrayList<String> newPredIdentList = new ArrayList<String>();
-          newPredIdentList.add(strIdentifier);
-          int _size = stmtList.size();
-          boolean _greaterThan = (_size > 1);
-          if (_greaterThan) {
-            stmtList.remove(0);
-            return DslControlflowGraph.toCFG(graph, stmtList, newPredIdentList);
-          } else {
-            final ArrayList<String> nodeArray = new ArrayList<String>();
-            nodeArray.add(strIdentifier);
-            return nodeArray;
+  private static List<Couple<String, String>> toCFG(final DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, final List<STATEMENT> stmtList, final List<Couple<String, String>> preds, final MCDC_Statement mcdcStatement) {
+    List<Couple<String, String>> _xblockexpression = null;
+    {
+      final int stmtListSize = stmtList.size();
+      List<Couple<String, String>> _xifexpression = null;
+      if ((stmtListSize > 0)) {
+        List<Couple<String, String>> _xblockexpression_1 = null;
+        {
+          DslControlflowGraph.identifier = (DslControlflowGraph.identifier + 1);
+          final String strIdentifier = Integer.valueOf(DslControlflowGraph.identifier).toString();
+          final STATEMENT currentStatement = stmtList.get(0);
+          List<Couple<String, String>> _switchResult = null;
+          boolean _matched = false;
+          if (!_matched) {
+            if (currentStatement instanceof AbstractVAR_DECL) {
+              _matched=true;
+              final Triplet<List<String>, List<String>, List<String>> varTriplet = mcdcStatement.mcdcVarStatement(((AbstractVAR_DECL)currentStatement));
+              final SimpleCfgNode node = new SimpleCfgNode(strIdentifier, currentStatement, varTriplet);
+              graph.addVertex(node);
+              DslControlflowGraph.addEdges(graph, preds, node);
+              final ArrayList<Couple<String, String>> newPreds = new ArrayList<Couple<String, String>>();
+              Couple<String, String> _couple = new Couple<String, String>(strIdentifier, DslControlflowGraph.emptyLabel);
+              newPreds.add(_couple);
+              int _size = stmtList.size();
+              boolean _greaterThan = (_size > 1);
+              if (_greaterThan) {
+                stmtList.remove(0);
+                return DslControlflowGraph.toCFG(graph, stmtList, newPreds, mcdcStatement);
+              } else {
+                final ArrayList<Couple<String, String>> nodeArray = new ArrayList<Couple<String, String>>();
+                Couple<String, String> _couple_1 = new Couple<String, String>(strIdentifier, DslControlflowGraph.emptyLabel);
+                nodeArray.add(_couple_1);
+                return nodeArray;
+              }
+            }
           }
-        }
-      }
-      if (!_matched) {
-        if (currentStatement instanceof ASSIGN_STATEMENT) {
-          _matched=true;
-          final SimpleCfgNode node = new SimpleCfgNode(strIdentifier, ((ASSIGN_STATEMENT)currentStatement), false);
-          graph.addVertex(node);
-          DslControlflowGraph.addEdges(graph, predIdentList, node);
-          final ArrayList<String> newPredIdentList = new ArrayList<String>();
-          newPredIdentList.add(strIdentifier);
-          int _size = stmtList.size();
-          boolean _greaterThan = (_size > 1);
-          if (_greaterThan) {
-            stmtList.remove(0);
-            return DslControlflowGraph.toCFG(graph, stmtList, newPredIdentList);
-          } else {
-            final ArrayList<String> nodeArray = new ArrayList<String>();
-            nodeArray.add(strIdentifier);
-            return nodeArray;
+          if (!_matched) {
+            if (currentStatement instanceof ASSIGN_STATEMENT) {
+              _matched=true;
+              final Triplet<List<String>, List<String>, List<String>> assignTriplet = mcdcStatement.mcdcAssignStatement(((ASSIGN_STATEMENT)currentStatement));
+              final SimpleCfgNode node = new SimpleCfgNode(strIdentifier, currentStatement, assignTriplet);
+              graph.addVertex(node);
+              DslControlflowGraph.addEdges(graph, preds, node);
+              final ArrayList<Couple<String, String>> newPreds = new ArrayList<Couple<String, String>>();
+              Couple<String, String> _couple = new Couple<String, String>(strIdentifier, DslControlflowGraph.emptyLabel);
+              newPreds.add(_couple);
+              int _size = stmtList.size();
+              boolean _greaterThan = (_size > 1);
+              if (_greaterThan) {
+                stmtList.remove(0);
+                return DslControlflowGraph.toCFG(graph, stmtList, newPreds, mcdcStatement);
+              } else {
+                final ArrayList<Couple<String, String>> nodeArray = new ArrayList<Couple<String, String>>();
+                Couple<String, String> _couple_1 = new Couple<String, String>(strIdentifier, DslControlflowGraph.emptyLabel);
+                nodeArray.add(_couple_1);
+                return nodeArray;
+              }
+            }
           }
-        }
-      }
-      if (!_matched) {
-        if (currentStatement instanceof IF_STATEMENT) {
-          _matched=true;
-          final EXPRESSION condition = ((IF_STATEMENT)currentStatement).getIfCond();
-          final CondCfgNode node = new CondCfgNode(strIdentifier, condition, false);
-          graph.addVertex(node);
-          DslControlflowGraph.addEdges(graph, predIdentList, node);
-          final ArrayList<String> newPredIdentList = new ArrayList<String>();
-          newPredIdentList.add(strIdentifier);
-          final EList<STATEMENT> ifStmtList = ((IF_STATEMENT)currentStatement).getIfst();
-          final EList<STATEMENT> elseStmtList = ((IF_STATEMENT)currentStatement).getElst();
-          final List<String> list1 = DslControlflowGraph.toCFG(graph, ifStmtList, newPredIdentList);
-          final List<String> list2 = DslControlflowGraph.toCFG(graph, elseStmtList, newPredIdentList);
-          final ArrayList<String> cumulPredList = new ArrayList<String>();
-          cumulPredList.addAll(list1);
-          cumulPredList.addAll(list2);
-          int _size = stmtList.size();
-          boolean _greaterThan = (_size > 1);
-          if (_greaterThan) {
-            stmtList.remove(0);
-            return DslControlflowGraph.toCFG(graph, stmtList, cumulPredList);
-          } else {
-            return cumulPredList;
+          if (!_matched) {
+            if (currentStatement instanceof IF_STATEMENT) {
+              _matched=true;
+              final Couple<Triplet<List<String>, List<String>, List<String>>, Triplet<List<String>, List<String>, List<String>>> condTriplet = mcdcStatement.mcdcIfThenElseStatement(((IF_STATEMENT)currentStatement));
+              Triplet<List<String>, List<String>, List<String>> _first = condTriplet.getFirst();
+              Triplet<List<String>, List<String>, List<String>> _second = condTriplet.getSecond();
+              final CondCfgNode node = new CondCfgNode(strIdentifier, currentStatement, _first, _second);
+              graph.addVertex(node);
+              DslControlflowGraph.addEdges(graph, preds, node);
+              final ArrayList<Couple<String, String>> ifPreds = new ArrayList<Couple<String, String>>();
+              final ArrayList<Couple<String, String>> elsePreds = new ArrayList<Couple<String, String>>();
+              Couple<String, String> _couple = new Couple<String, String>(strIdentifier, DslControlflowGraph.trueLabel);
+              ifPreds.add(_couple);
+              Couple<String, String> _couple_1 = new Couple<String, String>(strIdentifier, DslControlflowGraph.falseLabel);
+              elsePreds.add(_couple_1);
+              final EList<STATEMENT> ifStmtList = ((IF_STATEMENT)currentStatement).getIfst();
+              final EList<STATEMENT> elseStmtList = ((IF_STATEMENT)currentStatement).getElst();
+              final List<Couple<String, String>> list1 = DslControlflowGraph.toCFG(graph, ifStmtList, ifPreds, mcdcStatement);
+              final List<Couple<String, String>> list2 = DslControlflowGraph.toCFG(graph, elseStmtList, elsePreds, mcdcStatement);
+              final ArrayList<Couple<String, String>> cumulPreds = new ArrayList<Couple<String, String>>();
+              cumulPreds.addAll(list1);
+              cumulPreds.addAll(list2);
+              int _size = stmtList.size();
+              boolean _greaterThan = (_size > 1);
+              if (_greaterThan) {
+                stmtList.remove(0);
+                return DslControlflowGraph.toCFG(graph, stmtList, cumulPreds, mcdcStatement);
+              } else {
+                return cumulPreds;
+              }
+            }
           }
+          if (!_matched) {
+            _switchResult = null;
+          }
+          _xblockexpression_1 = _switchResult;
         }
-      }
-    } catch (final Throwable _t) {
-      if (_t instanceof Exception) {
-        final Exception e = (Exception)_t;
-        _xtrycatchfinallyexpression = null;
+        _xifexpression = _xblockexpression_1;
       } else {
-        throw Exceptions.sneakyThrow(_t);
+        return preds;
       }
+      _xblockexpression = _xifexpression;
     }
-    return _xtrycatchfinallyexpression;
+    return _xblockexpression;
   }
   
-  private static void addEdges(final DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, final List<String> predIdentList, final Node node) {
-    System.out.println(((node.id + " => ") + predIdentList));
-    final Procedure1<String> _function = new Procedure1<String>() {
-      public void apply(final String predIdent) {
-        final Node predNode = DslControlflowGraph.getNode(graph, predIdent);
-        graph.addEdge(predNode, node);
+  private static void addEdges(final DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, final List<Couple<String, String>> preds, final Node node) {
+    final Procedure1<Couple<String, String>> _function = new Procedure1<Couple<String, String>>() {
+      public void apply(final Couple<String, String> pred) {
+        final String nodeId = pred.getFirst();
+        final String labelValue = pred.getSecond();
+        final Node predNode = DslControlflowGraph.getNode(graph, nodeId);
+        final LabeledWeightedEdge label = new LabeledWeightedEdge(labelValue);
+        graph.addEdge(predNode, node, label);
       }
     };
-    IterableExtensions.<String>forEach(predIdentList, _function);
+    IterableExtensions.<Couple<String, String>>forEach(preds, _function);
   }
   
   private static Node getNode(final DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph, final String id) {

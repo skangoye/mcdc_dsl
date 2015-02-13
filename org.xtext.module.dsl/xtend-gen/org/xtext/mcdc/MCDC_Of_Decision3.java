@@ -40,10 +40,6 @@ public class MCDC_Of_Decision3 {
    */
   public List<String> mcdcOfBooleanExpression(final EXPRESSION booleanExpression) {
     try {
-      String _stringReprOfExpression = DslUtils.stringReprOfExpression(booleanExpression);
-      String _plus = ("MCDC of " + _stringReprOfExpression);
-      System.out.println(_plus);
-      System.out.println();
       final ArrayList<List<Triplet<String, String, String>>> dfsValues = new ArrayList<List<Triplet<String, String, String>>>();
       final TreeSet<String> finalMCDCValues = new TreeSet<String>();
       this.mcdcDepthFirstSearch(booleanExpression, dfsValues);
@@ -81,21 +77,21 @@ public class MCDC_Of_Decision3 {
       String _first = _get.getFirst();
       final int size = _first.length();
       final ArrayList<List<Couple<Couple<String, Integer>, Couple<String, Integer>>>> listOfIndepVectors = new ArrayList<List<Couple<Couple<String, Integer>, Couple<String, Integer>>>>();
+      final TreeSet<String> feasibleTestCases = new TreeSet<String>();
       this.fillWithEmptyElements(listOfIndepVectors, size);
       for (final Couple<String, Integer> fc : feasibleFalseValueWithWeight) {
-        for (final Couple<String, Integer> tc : feasibleTrueValueWithWeight) {
-          this.addIndepVector(fc, tc, listOfIndepVectors);
+        {
+          String _first_1 = fc.getFirst();
+          feasibleTestCases.add(_first_1);
+          for (final Couple<String, Integer> tc : feasibleTrueValueWithWeight) {
+            {
+              String _first_2 = tc.getFirst();
+              feasibleTestCases.add(_first_2);
+              this.addIndepVector(fc, tc, listOfIndepVectors);
+            }
+          }
         }
       }
-      int _size = feasibleFalseValueWithWeight.size();
-      int _size_1 = feasibleTrueValueWithWeight.size();
-      int _plus_1 = (_size + _size_1);
-      String _plus_2 = (" Total number of Values: " + Integer.valueOf(_plus_1));
-      System.out.println(_plus_2);
-      int _size_2 = listOfIndepVectors.size();
-      String _plus_3 = (" listOfIndepVectors: " + Integer.valueOf(_size_2));
-      System.out.println(_plus_3);
-      System.out.println();
       final Procedure1<List<Couple<Couple<String, Integer>, Couple<String, Integer>>>> _function = new Procedure1<List<Couple<Couple<String, Integer>, Couple<String, Integer>>>>() {
         public void apply(final List<Couple<Couple<String, Integer>, Couple<String, Integer>>> list) {
           int _size = list.size();
@@ -107,34 +103,15 @@ public class MCDC_Of_Decision3 {
             final Couple<String, Integer> couple1 = mostValuable.getFirst();
             final Couple<String, Integer> couple2 = mostValuable.getSecond();
             String _first = couple1.getFirst();
-            String _plus = (("[ " + "(") + _first);
-            String _plus_1 = (_plus + "_");
-            Integer _second = couple1.getSecond();
-            String _plus_2 = (_plus_1 + _second);
-            String _plus_3 = (_plus_2 + ",");
+            String _plus = (MCDC_Of_Decision3.FalseChar + _first);
+            finalMCDCValues.add(_plus);
             String _first_1 = couple2.getFirst();
-            String _plus_4 = (_plus_3 + _first_1);
-            String _plus_5 = (_plus_4 + "_");
-            Integer _second_1 = couple2.getSecond();
-            String _plus_6 = (_plus_5 + _second_1);
-            String _plus_7 = (_plus_6 + ")");
-            String _plus_8 = (_plus_7 + " ]");
-            System.out.println(_plus_8);
-            String _first_2 = couple1.getFirst();
-            String _plus_9 = (MCDC_Of_Decision3.FalseChar + _first_2);
-            finalMCDCValues.add(_plus_9);
-            String _first_3 = couple2.getFirst();
-            String _plus_10 = (MCDC_Of_Decision3.TrueChar + _first_3);
-            finalMCDCValues.add(_plus_10);
-            System.out.println("###############################################################");
-            System.out.println();
+            String _plus_1 = (MCDC_Of_Decision3.TrueChar + _first_1);
+            finalMCDCValues.add(_plus_1);
           }
         }
       };
       IterableExtensions.<List<Couple<Couple<String, Integer>, Couple<String, Integer>>>>forEach(listOfIndepVectors, _function);
-      String _string = finalMCDCValues.toString();
-      String _plus_4 = ("Final Values: " + _string);
-      System.out.println(_plus_4);
       return IterableExtensions.<String>toList(finalMCDCValues);
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);

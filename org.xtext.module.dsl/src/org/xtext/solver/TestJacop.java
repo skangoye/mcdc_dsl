@@ -29,7 +29,7 @@ public class TestJacop {
 		double MIN_FLOAT = -1e+6;
 	    double MAX_FLOAT =  1e+6;
 	    
-	    FloatDomain.setPrecision(0.0001);
+	    FloatDomain.setPrecision(0.1);
 		//create Coral solver
 		Store store = new Store();	
 		
@@ -38,7 +38,17 @@ public class TestJacop {
 				
 //		FloatVar y = new FloatVar(store, "Y", -1, 100); 
 	
-		FloatVar z = new FloatVar(store, "Z", 0, 10);
+		FloatVar x = new FloatVar(store, "x", 0.0, 10.0);
+		FloatVar y = new FloatVar(store, "y", 0.0, 10.0);
+		
+		PrimitiveConstraint c1 = new PgtQ(y, x);
+		store.impose(c1);
+		
+		PrimitiveConstraint c2 = new PgtQ(x, y);
+		store.impose(c2);
+		
+//		PrimitiveConstraint c = new Or(c1, c2);
+//		store.impose(c);
 		
 //		FloatVar tmp_result0 = new FloatVar(store,"tmp_result0", MIN_FLOAT, MAX_FLOAT);
 //		
@@ -58,7 +68,7 @@ public class TestJacop {
 //		PrimitiveConstraint c4 = new PgteqQ(z, zero);
 //		store.impose(c4);		
 		
-		FloatVar x1 = new FloatVar(store, "X1", 0, 10); 
+//		FloatVar x1 = new FloatVar(store, "X1", 0.0, 0.0); 
 //		PrimitiveConstraint c5 = new PeqQ(x1, y);
 //		store.impose(c5); 
 		
@@ -69,11 +79,11 @@ public class TestJacop {
 //		PrimitiveConstraint c8 = new PneqQ(z, zero);
 //		store.impose(c8);
 		
-		PrimitiveConstraint c9 =  new PltQ(z, x1);
-		c9.impose(store);
+//		PrimitiveConstraint c9 =  new PltQ(z, x1);
+//		c9.impose(store);
 		
-		PrimitiveConstraint c10 = new PgtQ(z, x1);
-		c10.impose(store);
+//		PrimitiveConstraint c10 = new PgtQ(z, x1);
+//		c10.impose(store);
 		
 		
 //		FloatVar plus = new FloatVar(store, "plus", MIN_FLOAT, MAX_FLOAT);
@@ -97,7 +107,7 @@ public class TestJacop {
 //		store.impose(new And(c));
 
 		DepthFirstSearch<FloatVar> floatSearch = new DepthFirstSearch<FloatVar>();
-		SelectChoicePoint<FloatVar> floatSelect = new SplitSelectFloat<FloatVar>(store, new FloatVar[] {z, x1}, null) ;
+		SelectChoicePoint<FloatVar> floatSelect = new SplitSelectFloat<FloatVar>(store, new FloatVar[] {x, y}, null) ;
 //		floatSearch.setAssignSolution(true);
 //		floatSearch.setSolutionListener( new PrintOutListener<FloatVar>());
 //		floatSearch.getSolutionListener().searchAll(true); 

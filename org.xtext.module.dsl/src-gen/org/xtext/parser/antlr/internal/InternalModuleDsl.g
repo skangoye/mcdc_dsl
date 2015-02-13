@@ -1906,9 +1906,35 @@ ruleERROR_STATEMENT returns [EObject current=null]
             grammarAccess.getERROR_STATEMENTAccess().getERROR_STATEMENTAction_1(),
             $current);
     }
-)(	otherlv_2=';' 
+)	otherlv_2='(' 
     {
-    	newLeafNode(otherlv_2, grammarAccess.getERROR_STATEMENTAccess().getSemicolonKeyword_2());
+    	newLeafNode(otherlv_2, grammarAccess.getERROR_STATEMENTAccess().getLeftParenthesisKeyword_2());
+    }
+(
+(
+		lv_message_3_0=RULE_STRING
+		{
+			newLeafNode(lv_message_3_0, grammarAccess.getERROR_STATEMENTAccess().getMessageSTRINGTerminalRuleCall_3_0()); 
+		}
+		{
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getERROR_STATEMENTRule());
+	        }
+       		setWithLastConsumed(
+       			$current, 
+       			"message",
+        		lv_message_3_0, 
+        		"STRING");
+	    }
+
+)
+)	otherlv_4=')' 
+    {
+    	newLeafNode(otherlv_4, grammarAccess.getERROR_STATEMENTAccess().getRightParenthesisKeyword_4());
+    }
+(	otherlv_5=';' 
+    {
+    	newLeafNode(otherlv_5, grammarAccess.getERROR_STATEMENTAccess().getSemicolonKeyword_5());
     }
 )?)
 ;
@@ -2439,11 +2465,11 @@ ruleMULT_DIV returns [EObject current=null]
     @after { leaveRule(); }:
 (
     { 
-        newCompositeNode(grammarAccess.getMULT_DIVAccess().getPrimaryExpressionParserRuleCall_0()); 
+        newCompositeNode(grammarAccess.getMULT_DIVAccess().getMODULOParserRuleCall_0()); 
     }
-    this_PrimaryExpression_0=rulePrimaryExpression
+    this_MODULO_0=ruleMODULO
     { 
-        $current = $this_PrimaryExpression_0.current; 
+        $current = $this_MODULO_0.current; 
         afterParserOrEnumRuleCall();
     }
 ((((
@@ -2470,9 +2496,9 @@ ruleMULT_DIV returns [EObject current=null]
 ))(
 (
 		{ 
-	        newCompositeNode(grammarAccess.getMULT_DIVAccess().getRightPrimaryExpressionParserRuleCall_1_1_0()); 
+	        newCompositeNode(grammarAccess.getMULT_DIVAccess().getRightMODULOParserRuleCall_1_1_0()); 
 	    }
-		lv_right_5_0=rulePrimaryExpression		{
+		lv_right_5_0=ruleMODULO		{
 	        if ($current==null) {
 	            $current = createModelElementForParent(grammarAccess.getMULT_DIVRule());
 	        }
@@ -2480,6 +2506,64 @@ ruleMULT_DIV returns [EObject current=null]
        			$current, 
        			"right",
         		lv_right_5_0, 
+        		"MODULO");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*)
+;
+
+
+
+
+
+// Entry rule entryRuleMODULO
+entryRuleMODULO returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getMODULORule()); }
+	 iv_ruleMODULO=ruleMODULO 
+	 { $current=$iv_ruleMODULO.current; } 
+	 EOF 
+;
+
+// Rule MODULO
+ruleMODULO returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+    { 
+        newCompositeNode(grammarAccess.getMODULOAccess().getPrimaryExpressionParserRuleCall_0()); 
+    }
+    this_PrimaryExpression_0=rulePrimaryExpression
+    { 
+        $current = $this_PrimaryExpression_0.current; 
+        afterParserOrEnumRuleCall();
+    }
+((
+    {
+        $current = forceCreateModelElementAndSet(
+            grammarAccess.getMODULOAccess().getMODULOLeftAction_1_0(),
+            $current);
+    }
+)	otherlv_2='%' 
+    {
+    	newLeafNode(otherlv_2, grammarAccess.getMODULOAccess().getPercentSignKeyword_1_1());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMODULOAccess().getRightPrimaryExpressionParserRuleCall_1_2_0()); 
+	    }
+		lv_right_3_0=rulePrimaryExpression		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMODULORule());
+	        }
+       		set(
+       			$current, 
+       			"right",
+        		lv_right_3_0, 
         		"PrimaryExpression");
 	        afterParserOrEnumRuleCall();
 	    }
