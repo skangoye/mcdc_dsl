@@ -42,10 +42,10 @@ class GetFeasiblePaths {
 			
 			val pc = pathToPathCondition(module, path, mcdcStatement) //get Path Condition list
 
-//			System.out.println
-//			pc.forEach [ 
-//				bt,i | System.out.println("cond: "+ i) bt.printPathCondition System.out.println
-//			]
+			System.out.println
+			pc.forEach [ 
+				bt,i | System.out.println("cond: "+ i) bt.printPathCondition System.out.println
+			]
 			
 			val solve = pc.solvePathCondition(module , pb) //solve Path Condition
 			
@@ -84,11 +84,14 @@ class GetFeasiblePaths {
 	 * Solve the Path Condition with Coral
 	 */
 	def static int solvePathCondition(List<BinaryTree<Couple<String,String>>> PC, MODULE_DECL module, ProblemCoral pb){
+		
+		//create symbolic variables		
+		pb.createSymbVariables(dslPathVars)
 				
 		//PC to Coral 
 		PC.forEach[
-			elem | val invert = false 
-			val ctr = translateSubPathCondition(elem , pb , invert)
+			subPathCondition | val invert = false 
+			val ctr = translateSubPathCondition(subPathCondition, pb , invert)
 			pb.post(ctr)
 		]//forEach
 		
@@ -96,7 +99,21 @@ class GetFeasiblePaths {
 		
 		return pb.solve
 	
-	}//solvePathCondition
+	}
+	
+	def static createSymbVariables(ProblemCoral pb, HashMap<String, Object> dslVarsWithSymbNames) {
+		val keySet = dslVarsWithSymbNames.keySet
+		for(key: keySet){
+			val dslVariable = (dslVarsWithSymbNames.get(key) as VAR_DECL)
+			val flow = dslVariable.flow.flow
+			if(flow == "in" || flow == "inout"){
+				val type = dslVariable.type.type
+				dealWithVarsAndConst(pb, key, type, false)
+			}
+		}
+	}
+	
+	//solvePathCondition
 	
 	
 	/**
@@ -199,7 +216,11 @@ class GetFeasiblePaths {
 				case "/": {
 					pb.div( subPathCondition.left.translateSubPathCondition(pb, invert) , subPathCondition.right.translateSubPathCondition(pb, invert))
 				}
-			
+				
+				case "%": {
+					pb.mod( subPathCondition.left.translateSubPathCondition(pb, invert) , subPathCondition.right.translateSubPathCondition(pb, invert))
+				}
+				
 				default:{
 					val type = value.second
 					if(operator != ""){ dealWithVarsAndConst(pb, operator, type , invert) }

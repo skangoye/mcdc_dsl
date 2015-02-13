@@ -55,6 +55,7 @@ import org.xtext.moduleDsl.VAR_REF
 import static extension org.xtext.type.provider.ExpressionsTypeProvider.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.xtext.type.provider.ExpressionsTypeProvider
+import org.xtext.moduleDsl.MODULO
 
 //import org.eclipse.xtext.validation.Check
 
@@ -600,6 +601,18 @@ class ModuleDslValidator extends AbstractModuleDslValidator {
 	 	checkNotIntandNotReal(rightType, ModuleDslPackage.Literals.SUB__RIGHT)
 	 }
 	 
+	 
+	 //Check type for modulo operator
+	  @Check
+	 def checkType(MODULO mod){
+	 	val leftType = getNonNullType(mod.left, ModuleDslPackage.Literals.MODULO__LEFT)
+	 	val rightType = getNonNullType(mod.right, ModuleDslPackage.Literals.MODULO__RIGHT)
+	 	
+	 	checkNotInt(leftType, ModuleDslPackage.Literals.MODULO__LEFT)
+	 	checkNotInt(rightType, ModuleDslPackage.Literals.MODULO__RIGHT)
+	 }
+	 
+	 
 	 //Check type for Comparison operator
 	 @Check
 	 def checkType(COMPARISON comp){
@@ -727,6 +740,12 @@ class ModuleDslValidator extends AbstractModuleDslValidator {
 	 	}
 	 }
 	 
+	  def private checkNotInt(String type, EReference ref){
+	 	if (type != ExpressionsTypeProvider::intType ){
+	 		error("expected intType, but was "+ type, ref)
+	 	}
+	 }
+	 
 	 def private checkExpectedType(EXPRESSION exp, String expectedType,EReference ref){
 	 	val actualType = getNonNullType(exp,ref)
 	 	if(actualType != expectedType){
@@ -801,11 +820,11 @@ class ModuleDslValidator extends AbstractModuleDslValidator {
 	 		error("The left-hand side of an assignment must be a variable", ref)
 	 	}
 	 	else{
-	 		if( leftSide instanceof VAR_DECL){
-	 			if ((leftSide as VAR_DECL).flow?.flow == "in" ){
-	 				error("The left-hand side of an assignment cannot be an input variable",ref)
-	 			}
-	 		}
+//	 		if( leftSide instanceof VAR_DECL){
+//	 			if ((leftSide as VAR_DECL).flow?.flow == "in" ){
+//	 				error("The left-hand side of an assignment cannot be an input variable",ref)
+//	 			}
+//	 		}
 	 	}
 	 }
 	 

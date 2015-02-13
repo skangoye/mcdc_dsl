@@ -72,7 +72,7 @@ class SoverUtils {
 		}
 	}//
 	
-	def static setRangeConstraints(ProblemCoral pb, Map<String, Object> dslVars, Map<String, Object> solverIntvars, Map<String, Object> solverDoubleVars){
+	def static setRangeConstraints(ProblemCoral pb, Map<String, Object> dslVars, Map<String, Object> solverIntVars, Map<String, Object> solverDoubleVars){
 		val dslVarsKeys = dslVars.keySet
 		for(key: dslVarsKeys){
 			
@@ -80,9 +80,9 @@ class SoverUtils {
 			val dslVarType = dslVariable.type.type
 			
 			if(dslVarType == "int" || dslVarType == "enum"){
-				if(solverIntvars.containsKey(key)){
-					val solverVar = solverIntvars.get(key)
+				if(solverIntVars.containsKey(key)){
 					
+					val solverVar = solverIntVars.get(key)
 					val minCouple = getMin(dslVariable) 
 					val maxCouple = getMax(dslVariable)
 					
@@ -97,8 +97,8 @@ class SoverUtils {
 			else{
 				if(dslVarType == "real"){		
 					if(solverDoubleVars.containsKey(key)){
-						val solverVar = solverDoubleVars.get(key)
 						
+						val solverVar = solverDoubleVars.get(key)
 						val minCouple = getMin(dslVariable) 
 						val maxCouple = getMax(dslVariable)
 						

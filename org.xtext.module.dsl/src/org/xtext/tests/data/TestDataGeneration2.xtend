@@ -5,19 +5,21 @@ import java.util.HashMap
 import java.util.List
 import java.util.Map
 import java.util.Set
+import org.jacop.core.IntVar
+import org.jacop.floats.core.FloatVar
 import org.xtext.helper.BinaryTree
 import org.xtext.helper.Couple
 import org.xtext.helper.Triplet
+import org.xtext.moduleDsl.INTERVAL
 import org.xtext.moduleDsl.LSET
 import org.xtext.moduleDsl.MODULE_DECL
 import org.xtext.moduleDsl.VAR_DECL
-import org.xtext.solver.ProblemCoral
+import org.xtext.solver.ProblemJacop
 
-import static org.xtext.solver.SoverUtils.*
-
+import static extension org.xtext.solver.JacopUtils.*
 import static extension org.xtext.utils.DslUtils.*
 
-class TestDataGeneration {
+class TestDataGeneration2 {
 	
 	val private static intVars = new HashMap<String, Object> 		//solver integer vars
 	val private static doubleVars = new HashMap<String, Object> 	//solver double vars
@@ -25,72 +27,57 @@ class TestDataGeneration {
 	val private static dslOutVars = new HashMap<String, Object> 	//dsl interface out vars
 	
 	val private static final splitPattern = "\\|" 					//split pattern
-	val private static final IMIN = -100 							//minimum int variable
-	val private static final IMAX = 100 							//maximum int variable
-	val private static final DMIN = -100.0 							//minimum double variable
-	val private static final DMAX = 100.0 							//maximum int variable
-	
-	
+		
 	/**
 	 * 
 	 */
-	def static testDataGen(MODULE_DECL module, Map<List<Couple<String,String>>, String> mapTestSequencesAndIdents, Map<String,List<String>> pathIdentsSequences,
-		Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> expression)
-	{
-		val solutions = new HashMap< List<Couple<String,String>>, List<Triplet<String,String,String>>>
+	def static testDataGeneration(
+		MODULE_DECL module, 
+		Map<List<Couple<String,String>>, String> mapTestSequencesAndIdents,
+		Map<String,List<String>> pathIdentsSequences,
+		Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> expression
+	){
+			
+		val solutions = new HashMap<List<Couple<String,String>>, List<Triplet<String,String,String>>>
 		
-		//put dsl input vars in dslInVars and dsl output vars in dslOutVars
-		module.recordDslVariables(dslInVars, dslOutVars)
-		
-		val dslInSSAVars = dslInputSSAVars(dslInVars)
+		//collect dsl input vars in dslInVars and dsl output vars in dslOutVars
+		module.collectDslVariables(dslInVars, dslOutVars)
 		
 		mapTestSequencesAndIdents.keySet.forEach[ 
 			
 			testSequences | val pathID = mapTestSequencesAndIdents.get(testSequences)
-//			System.out.println("pathID:" + pathID)
 			val pathIdentSeq = pathIdentsSequences.get(pathID) //idents sequences along the path #pathID
-//			System.out.println("pathIdentsSequences:" + pathIdentSeq.toString)
 			
-			ProblemCoral.configure	//create the solver
-			val pb = new ProblemCoral()
+			//create the solver
+			val pb = new ProblemJacop()
 			
-			//create input variables: dsl inputs with SSA index == 0
-			dslInSSAVars.keySet.forEach[ 
-				keyWithSSA | val dslValType = (dslInSSAVars.get(keyWithSSA) as VAR_DECL).type.type
-				dealWithVariables(pb, keyWithSSA, dslValType)	
-			]
+			//list of couple<dslInputVarSSAname, varType> 
+			val solverInVarsMap = pb.createInputVariables(dslInVars)
 			
-//			val new_dslInVars = pb.createInputVariables(dslInVars)
 			pb.toSolverTranslator(pathIdentSeq, testSequences, expression, pathID)
 			
-//			val new_dslInVars = dslInVars.ssaVarsNamesWithDslVars(intVars, doubleVars)
-			val new_dslOutVars = dslOutVars.ssaVarsNamesWithDslVars(intVars, doubleVars)
-			
-			setRangeConstraints(pb, dslInSSAVars, intVars, doubleVars)
-			setRangeConstraints(pb, new_dslOutVars, intVars, doubleVars)
-			
-			val solve = pb.solve
-			
-			if(solve == 1){//
+			//list of couple<dslOutVarSSAname, varType> 
+			val solverOutVarsMap = dslOutVars.dslOutVarsWithSSAindexes(intVars, doubleVars)
 				
-				System.out.println
-				System.out.println("Input variables: "+ dslInSSAVars.keySet.toString)
-				System.out.println
+			val solverVars = new ArrayList<Object>
+			solverVars.addAll(solverInVarsMap.values) //add solver's input values to the list 'solverVars'
+			solverVars.addAll(solverOutVarsMap.values) //add solver's output values to the list 'solverVars'
+			
+			val solve = pb.solve(solverVars)
+			
+			if (solve) {// Solutions
 				
-				val inSolutions = pb.recordSolutions(dslInSSAVars, intVars, doubleVars)
-				val outSolutions = pb.recordSolutions(new_dslOutVars, intVars, doubleVars)
+//				pb.printStore;
+										
+				val inSolutions = pb.recordSolutions(solverInVarsMap, dslInVars, "input")
+				val outSolutions = pb.recordSolutions(solverOutVarsMap, dslOutVars, "output")
 				
 				inSolutions.addAll(outSolutions)
 				
 				solutions.put(testSequences, inSolutions)
-			//	solutions.add(outSolutions)
 
 			}//solve
-			else{
-				//
-			}
 			
-			pb.cleanup
 			intVars.clear
 			doubleVars.clear
 			
@@ -99,26 +86,43 @@ class TestDataGeneration {
 		return solutions
 	}
 	
-	def static dslInputSSAVars(HashMap<String, Object> dslInVarsMap) {
-		
-		val inVars = dslInVarsMap.keySet
-		val new_dsl_inputs = new HashMap<String, Object>
-		
-		for (vName: inVars){
-			val ssaInputName = vName.addSSAIndex("0")
-			val dslVar = dslInVarsMap.get(vName)
-			val put = new_dsl_inputs.put(ssaInputName, dslVar)
-		}		
-		return new_dsl_inputs
-
-	}//dslInputSSAVars
 	
+	def static createInputVariables( ProblemJacop pb, HashMap<String, Object> dslInVarsMap) {
+		
+		val map = new HashMap<String, Object>
+		val inputVarsNames = dslInVarsMap.keySet
+		
+		for(inputVarName : inputVarsNames){
+			
+			val ssaInputVarName = inputVarName.addSSAIndex("0")
+			val dslInputVar = (dslInVarsMap.get(inputVarName) as VAR_DECL)
+			val range = dslInputVar.range
+			val type = dslInputVar.type.type
+			
+			val solverVar = pb.manageVariables(ssaInputVarName, type)
+			
+			if(range instanceof INTERVAL){
+				pb.setIntervalConstraints(solverVar, dslInputVar)
+			}
+			else{
+				if(range instanceof LSET){
+					pb.setSetconstraints(solverVar, dslInputVar)
+				}
+			}
+			
+			map.put(ssaInputVarName, solverVar)		
+			
+		}//for
+	
+		return map
+	
+	}//createInputVariables
 	
 	
 	/**
-	 * Translate a SSA expression into the Coral Solver expression
+	 * Translate a SSA expression into the Solver expression
 	 */
-	def static toSolverTranslator(ProblemCoral pb, List<String> pathIdentSeq, List<Couple<String, String>> testSequences, Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> ssaExprMap, String pathID) {
+	def static toSolverTranslator(ProblemJacop pb, List<String> pathIdentSeq, List<Couple<String, String>> testSequences, Map<String, Couple<String, BinaryTree<Triplet<String, String, String>>>> ssaExprMap, String pathID) {
 		
 		pathIdentSeq.forEach[
 			
@@ -130,13 +134,19 @@ class TestDataGeneration {
 				val expCouple = ssaExprMap.get(identAtPathID) //SSA form of the expression having the ident 'pathCondID' in the path #pathID
 				val ssaName = expCouple.first  //SSA assignment variable of the expression having the ident 'pathCondID'
 				val btExp = expCouple.second //SSA form of the expression having the ident 'pathCondID'
-				val type = btExp.value.third //Since btExp is not a bool expression => assignment variable type = btExp.type 
+				var type = btExp.value.third //Since btExp is not a bool expression => assignment variable type = btExp.type 				
 				
-				val solverVar = makeSolverVar(pb, ssaName, type) //make new solver variable sith 
+				//Since bTExp type is infered from its assignment's value, type could be a constant type 
+				//In that case, we just remove the prefix "c_" 
+				if(type == "c_int" || type == "c_real" || type=="c_enum"){
+					type = type.substring(2, type.length)
+				}
+				
+				val solverVar = pb.manageVariables(ssaName, type) //make new solver variable sith 
 				val solverBtExp = pb.toSolverExpression(btExp, true) //make new solver expression
 				val constraint = pb.eq(solverVar, solverBtExp) //assignment constraint: solverVar == solverBtExp
 				pb.post(constraint) //add new constraint to the solver
-			
+//				pb.printConstraint(constraint)//
 			}
 			else{// T or F or X => Boolean expression
 				
@@ -146,7 +156,7 @@ class TestDataGeneration {
 				val btExp = expCouple.second
 				val ssaName = expCouple.first 
 				
-				val results = testSequences.getSequence(pathCondIDwithoutLast)
+				val results = testSequences.getIdSequence(pathCondIDwithoutLast)
 				val btBooleanConditions = btExp.booleanConditions //get all Boolean conditions involved in btExp
 						
 				btBooleanConditions.forEach[
@@ -156,11 +166,12 @@ class TestDataGeneration {
 					if (boolCondition.isRelationalCondition){ //relational condition: (a<3), (c==4), ...
 						val constraint = pb.toSolverExpression(boolCondition, outcome.boolValue)
 						pb.post(constraint)
+//						pb.printConstraint(constraint)//
 					}
 					else{//boolean variable, WARNING: could be a boolean constant TODO:review this section
 						val varName = boolCondition.value.first
 						val ssaIndex = boolCondition.value.second
-						val newName = varName.addSSAIndex(ssaIndex)
+						val ssaVarName = varName.addSSAIndex(ssaIndex)
 //						System.out.println(" Boolean condition " + newName)
 					}					
 				
@@ -176,60 +187,11 @@ class TestDataGeneration {
 	
 	}//toSolverTranslator
 	
-	
-	/**
-	 *
-	 */
-	def private static getSequence(List<Couple<String, String>> testSeq, String id){
 		
-		for(test: testSeq){
-			val testId = test.second
-			if (testId == id) {
-				return test.first.toStringArray
-			}
-		}
-		
-		throw new Exception("#### Associated sequence not found ####")
-	
-	}//getSequence
-	
-	
-	/**
-	 * Return a coral solver variable
-	 */
-	def private static Object makeSolverVar(ProblemCoral pb, String ssaName, String type) {
-		
-		if(type == "int" || type == "enum" || type == "c_int" || type == "c_enum"){
-			if (intVars.containsKey(ssaName)){
-				return intVars.get(ssaName)
-			}
-			else{
-				val value = pb.makeIntVar(ssaName, IMIN , IMAX)
-				val putValue = intVars.put(ssaName, value)
-				return value
-			}
-		}
-		else{
-			if(type == "real" || type == "c_real"){
-				if (doubleVars.containsKey(ssaName)){
-					return doubleVars.get(ssaName)
-				}
-				else{
-					val value = pb.makeRealVar(ssaName, DMIN , DMAX)
-					val putValue = doubleVars.put(ssaName, value)
-					return value
-				}
-			}
-			else{ throw new UnsupportedOperationException(" #### Unsupported operation #### ") }
-		}//else
-	
-	}//makeSolverVar
-	
-	
 	/**
 	 * Transform a relational condition into a Coral solver constraint 
 	 */
-	def static Object toSolverExpression(ProblemCoral pb, BinaryTree<Triplet<String,String,String>> bt, boolean outcome){
+	def static Object toSolverExpression(ProblemJacop pb, BinaryTree<Triplet<String,String,String>> bt, boolean outcome){
 		
 		val btValue = bt.value
 		val operator = btValue.first
@@ -251,10 +213,10 @@ class TestDataGeneration {
 			}
 			
 			case "XOR": {///////////Not properly implemented
-				if(outcome == false)//invert the xor operator
-					pb.xor(pb.toSolverExpression(bt.left, outcome) , pb.toSolverExpression(bt.right, outcome))
-				else
-					pb.xor(pb.toSolverExpression(bt.left, outcome) , pb.toSolverExpression(bt.right, outcome)) ///
+//				if(outcome == false)//invert the xor operator
+//					pb.xor(pb.toSolverExpression(bt.left, outcome) , pb.toSolverExpression(bt.right, outcome))
+//				else
+//					pb.xor(pb.toSolverExpression(bt.left, outcome) , pb.toSolverExpression(bt.right, outcome)) ///
 			}
 			
 			case "NOT": {
@@ -326,6 +288,10 @@ class TestDataGeneration {
 				pb.div(pb.toSolverExpression(bt.left, outcome) , pb.toSolverExpression(bt.right, outcome))
 			}
 		
+			case "%": {
+				pb.mod(pb.toSolverExpression(bt.left, outcome) , pb.toSolverExpression(bt.right, outcome))
+			}
+		
 			default:{ //variable or constant
 				
 				val nameOrValue = operator
@@ -335,9 +301,9 @@ class TestDataGeneration {
 				if(nameOrValue != ""){ 
 					if(ident != "") {//variable 
 						val ssaName = nameOrValue.addSSAIndex(ident) 
-						dealWithVariables(pb, ssaName, type) 
+						pb.manageVariables(ssaName, type) 
 					}
-					else{ /*constant*/ dealWithConstants(pb, nameOrValue, type, outcome) } 
+					else{ /*constant*/ pb.manageConstants(nameOrValue, type) } 
 				}
 				
 				else{ throw new Exception(" #### Incorrect expression type #### ") }
@@ -351,7 +317,7 @@ class TestDataGeneration {
 	/**
 	 * Deal with variable creation in the solver
 	 */
-	def static private dealWithVariables(ProblemCoral pb, String ssaVarName, String varType) {
+	def static private manageVariables(ProblemJacop pb, String ssaVarName, String varType) {
 		
 		switch(varType){
 			
@@ -360,7 +326,7 @@ class TestDataGeneration {
 					return intVars.get(ssaVarName)
 				}
 				else{
-					val value = pb.makeIntVar(ssaVarName, IMIN , IMAX)
+					val value = pb.makeIntVar(ssaVarName)
 					val putValue = intVars.put(ssaVarName, value)
 					return value
 				}
@@ -371,70 +337,66 @@ class TestDataGeneration {
 					return doubleVars.get(ssaVarName)
 				}
 				else{
-					val value = pb.makeRealVar(ssaVarName, DMIN , DMAX)
+					val value = pb.makeRealVar(ssaVarName)
 					val putValue = doubleVars.put(ssaVarName, value)
 					return value
 				}
 			}//case real
-			
-			case "bool" : {
-				throw new RuntimeException(" #### Coral does not handle boolean constraint #### ")
-			}
-			
+						
 			case "enum" : {
 				if (intVars.containsKey(ssaVarName)){
 					return intVars.get(ssaVarName)
 				}
 				else{
-					val enumVar = pb.makeIntVar(ssaVarName, IMIN , IMAX)
+					val enumVar = pb.makeIntVar(ssaVarName)
 					val putValue = intVars.put(ssaVarName, enumVar)
 					return enumVar
 				}		
 			}
 			
+			case "bool" : {
+				throw new RuntimeException(" #### Jacop does not handle boolean constraint #### ")
+			}
+		
 			case "str" : {
-				throw new UnsupportedOperationException(" #### Coral does not handle string constraint #### ")
+				throw new UnsupportedOperationException(" #### Jacop does not handle string constraint #### ")
 			}
 			
 			case "hex" : {
-				throw new UnsupportedOperationException(" #### Coral does not handle hexadecimal constraint #### ")
+				throw new UnsupportedOperationException(" #### Jacop does not handle hexadecimal constraint #### ")
 			}
 			
 			case "bit" : {
-				throw new UnsupportedOperationException(" #### Coral does not handle bit constraint #### ")
+				throw new UnsupportedOperationException(" #### Jacop does not handle bit constraint #### ")
 			}
 			
-			default: throw new RuntimeException(" #### Incorrect operation type #### ")
+			default: throw new RuntimeException(" #### Incorrect operation type #### " + 
+												"variable name: " + ssaVarName + " " + "variable type: " + varType)
 		}
 	
-	}//dealWithVariables
+	}//manageVariables
 	
 	
 	/**
 	 * Deal with constants creation in the solver
 	 */
-	def static private dealWithConstants(ProblemCoral pb, String value, String type, boolean outcome) {
+	def static private manageConstants(ProblemJacop pb, String value, String type) {
 		
 		switch(type){
 			
-			case "c_int": { new Integer(value.parseInt) } 
+			case "c_int": { value.parseInt } 
 			
-			case "c_real": { new Double(value.parseDouble) } 
+			case "c_real": { value.parseDouble } 
 			
-			case "c_enum": { //value = enumeration variableName + "@" +  enumerationValue: see toBTExpression method ins SSA package  
+			case "c_enum": { 
+			//value = enumeration variableName + "@" +  enumerationValue: see toBTExpression method ins SSA package  
 				val split = value.split("@")
 				val enumVar = split.get(0)
 				val enumValue = split.get(1)		
-				return new Integer( getIndexOfEnumValue(enumVar, enumValue))
+				return getIndexOfEnumValue(enumVar, enumValue)
 			}
 			
-			case "c_bool": {//in case of constant boolean, its value is stored in the first parameter of the triplet
-				val myBool = value.parseBoolean //
-				if(outcome == false)
-					return pb.makeBoolConstant(!myBool)
-				else
-					return pb.makeBoolConstant(myBool)
-			}
+			case "c_bool": { throw new UnsupportedOperationException(" #### bool not supported #### ") }
 			
 			case "c_bit": { throw new UnsupportedOperationException(" #### bit not supported yet #### ") }
 			
@@ -451,7 +413,7 @@ class TestDataGeneration {
 	 * Put dsl interface variables in maps as follows: dsl input variables are stored into the inVarsMap map and
 	 * the output variables are stored into the outVarsMap map. 
 	 */
-	def static recordDslVariables(MODULE_DECL module, Map<String,Object> inVarsMap, Map<String,Object> outVarsMap){
+	def static collectDslVariables(MODULE_DECL module, Map<String,Object> inVarsMap, Map<String,Object> outVarsMap){
 		
 		val listOfVariables = module.interface.declaration.filter(VAR_DECL) //module interface variables
 		
@@ -473,7 +435,7 @@ class TestDataGeneration {
 				else{
 					if (flow == "inout"){
 						inVarsMap.put(name, variable)
-//						dslOutVars.put(name, variable)				
+						outVarsMap.put(name, variable)				
 					}
 				}
 			}			
@@ -486,10 +448,76 @@ class TestDataGeneration {
 	/**
 	 * 
 	 */
+	def static private recordSolutions(ProblemJacop pb, Map<String, Object> solverVarsMap, Map<String, Object> dslVarsMap, String flow){
+		
+		val solutionsList = new ArrayList<Triplet<String, String, String>>
+		
+		solverVarsMap.keySet.forEach[ 
+			
+			varSSAname | 
+			val varName = varSSAname.removeSSAindex 
+			val dslVariable = dslVarsMap.get(varName) as VAR_DECL
+			val varType = dslVariable.type.type
+				
+			switch(varType){
+				case "int": {
+					val solverVar = (solverVarsMap.get(varSSAname) as IntVar)					
+					solutionsList.add( new Triplet(flow, varName, solverVar.value.toString))
+				}
+				
+				case "real": {
+					val solverVar = (solverVarsMap.get(varSSAname) as FloatVar)					
+					solutionsList.add( new Triplet(flow, varName, solverVar.value.toString))
+				}
+				
+				case "enum": {
+					val solverEnumVar = (solverVarsMap.get(varSSAname) as IntVar)	
+					val enumSolution = (dslVariable.range as LSET).value.get(solverEnumVar.value)
+					solutionsList.add( new Triplet(flow, varName, enumSolution.literalValue))
+				}
+				
+				default:{ /*To be handled later */}
+
+			}//switch
+			
+		]//forEach
+	
+		return solutionsList
+	
+	}//recordSolutions
+
+	
+	/**
+	 *
+	 */
+	def private static getIdSequence(List<Couple<String, String>> testSeq, String id){
+		
+		for(test: testSeq){
+			val testId = test.second
+			if (testId == id) {
+				return test.first.toStringArray
+			}
+		}
+		
+		throw new Exception("#### Associated sequence not found ####")
+	
+	}//getSequence
+	
+	
+	/**
+	 * 
+	 */
 	def private static addSSAIndex(String varName, String index){
 		return varName + "|" + index + "|"
 	}
 	
+	/**
+	 * 
+	 */
+	def static private removeSSAindex(String ssaName){
+		val split = ssaName.split(splitPattern)
+		return split.get(0) //name is the first element of the list
+	}
 	
 	/**
 	 * Return the position of an enumeration value listed in the enumeration variable list 
@@ -559,22 +587,6 @@ class TestDataGeneration {
 	
 	
 	/**
-	 * Return a string representation of the Binary tree
-	 */
-	def static String stringRepr(BinaryTree<Triplet<String,String,String>> bt){
-		if(!bt.isEmpty()){
-			if(!bt.isLeaf()){
-				"(" + bt.left.stringRepr + bt.value.first + bt.right.stringRepr +")"
-			}
-			else{ //leaf
-				val btValue = bt.value
-				return (btValue.first + btValue.second)
-			}//leaf
-		}
-	}//stringRepr
-	
-	
-	/**
 	 * Check whether or not, a Boolean condition is relational 
 	 */
 	def static boolean isRelationalCondition(BinaryTree<Triplet<String, String,String>> bt){
@@ -608,6 +620,22 @@ class TestDataGeneration {
 	
 	
 	/**
+	 * Return a string representation of the Binary tree
+	 */
+	def static String stringRepr(BinaryTree<Triplet<String,String,String>> bt){
+		if(!bt.isEmpty()){
+			if(!bt.isLeaf()){
+				"(" + bt.left.stringRepr + bt.value.first + bt.right.stringRepr +")"
+			}
+			else{ //leaf
+				val btValue = bt.value
+				return (btValue.first + btValue.second)
+			}//leaf
+		}
+	}//stringRepr
+	
+	
+	/**
 	 * 
 	 */
 	def static private String addPathID(String ident, String pathID){
@@ -618,76 +646,40 @@ class TestDataGeneration {
 	/**
 	 * 
 	 */
-	def static private ssaVarsNamesWithDslVars(Map<String, Object> dlsVars, Map<String, Object> intVars, Map<String, Object> doubleVars){
+	def static private dslOutVarsWithSSAindexes(Map<String, Object> dlsOutVars, Map<String, Object> intVars, Map<String, Object> doubleVars){
 		
 		val intKeys = intVars.keySet
 		val doubleKeys = doubleVars.keySet
-		val dslVarsKeys = dlsVars.keySet		
+		val dslVarsKeys = dlsOutVars.keySet		
 		
-		val map = new HashMap<String, Object>
+		val map = new HashMap<String,Object>
 		
 		dslVarsKeys.forEach[ 
 			
-			dslVarName | val dslVar = (dlsVars.get(dslVarName) as VAR_DECL)
+			dslVarName | val dslVar = (dlsOutVars.get(dslVarName) as VAR_DECL)
 			
 			val dslVarType = dslVar.type.type
 			val dslVarFlow = dslVar.flow.flow
 			
-			switch (dslVarFlow){
-				
-				case "in":{
-					if(dslVarType == "int" || dslVarType == "enum"){
-						val ssaName = dslVarName.inVarSsaName(intKeys)
-						if(ssaName != "") { map.put(ssaName, dlsVars.get(dslVarName))}
+			if (dslVarFlow == "out" || dslVarFlow == "inout"){
+
+				if(dslVarType == "int" || dslVarType == "enum"){
+					val ssaName = dslVarName.dslOutVarWithHighestIndex(intKeys)
+					if(ssaName != "") { map.put(ssaName, intVars.get(ssaName)) }
+				}
+				else{	
+					if(dslVarType == "real"){
+						val ssaName = dslVarName.dslOutVarWithHighestIndex(doubleKeys)
+						if(ssaName != "") { map.put(ssaName, doubleVars.get(ssaName)) }
 					}
-					else{	
-						if(dslVarType == "real"){
-							val ssaName = dslVarName.inVarSsaName(doubleKeys)
-							if(ssaName != "") { map.put(ssaName, dlsVars.get(dslVarName)) }
-						}
-						else{
-							//nothing yet
-						}
+					else{
+						throw new UnsupportedOperationException(" #### Type " + dslVarType+ " not supported #### ")
 					}
-				}//in
-				
-				case "out":{
-					if(dslVarType == "int" || dslVarType == "enum"){
-						val ssaName = dslVarName.outVarSsaName(intKeys)
-						if(ssaName != "") { map.put(ssaName, dlsVars.get(dslVarName))}
-					}
-					else{	
-						if(dslVarType == "real"){
-							val ssaName = dslVarName.outVarSsaName(doubleKeys)
-							if(ssaName != "") { map.put(ssaName, dlsVars.get(dslVarName))}
-						}
-						else{
-							//nothing yet
-						}
-					}
-				}//out
-				
-				case "inout":{
-					if(dslVarType == "int" || dslVarType == "enum"){
-						val ssaNameIn = dslVarName.inVarSsaName(intKeys)
-//						val ssaNameOut = dslVarName.outVarSsaName(intKeys)
-						if(ssaNameIn != "") { map.put(ssaNameIn, dlsVars.get(dslVarName))}
-					//	val put2 = map.put(ssaNameOut, dlsVars.get(dslVarName))
-					}
-					else{	
-						if(dslVarType == "real"){
-							val ssaNameIn = dslVarName.inVarSsaName(doubleKeys)
-//							val ssaNameOut = dslVarName.outVarSsaName(doubleKeys)
-							if(ssaNameIn != "") { map.put(ssaNameIn, dlsVars.get(dslVarName))}
-							//val put2 = map.put(ssaNameOut, dlsVars.get(dslVarName))
-						}
-						else{
-							//nothing yet
-						}
-					}
-				}//out
+				}
 			
-			}//switch	
+			}//if
+			
+			else{ throw new Exception(" #### Incorrect or Unsupported variable's flow #### ") }	
 			
 		]//forEach
 		
@@ -698,32 +690,7 @@ class TestDataGeneration {
 	/**
 	 * 
 	 */
-	def static private String inVarSsaName(String dslInVarName , Set<String> ssaVarsNames){
-
-		for(ssaName: ssaVarsNames){
-			val split = ssaName.split(splitPattern)
-			val name = split.get(0) //variable name without SSA ident
-			val index = split.get(1) // ssa variable name index
-			if( (dslInVarName == name) && (index == "0")){ return ssaName } //dsl input variables names are those whose ssaNames get index "0"
-		}//for	
-		//throw new Exception(" #### Variable "+ dslInVarName +" not found #### ")
-		return ""
-	}//inVarSsaName
-	
-	
-	/**
-	 * 
-	 */
-	def static private removeSSAindex(String ssaName){
-		val split = ssaName.split(splitPattern)
-		return split.get(0) //name is the first element of the list
-	}
-	
-	
-	/**
-	 * 
-	 */
-	def static private String outVarSsaName(String dslOutVarName , Set<String> ssaVarsNames) {	
+	def static private String dslOutVarWithHighestIndex(String dslOutVarName , Set<String> ssaVarsNames) {	
 		var highestIndexVar = ""
 		var tmpIndex = -1
 		
@@ -748,73 +715,4 @@ class TestDataGeneration {
 	
 	}//outVarSsaName
 	
-	
-	/**
-	 * 
-	 */
-	def static private recordSolutions(ProblemCoral pb, Map<String, Object> dslVars, Map<String, Object> intVars, Map<String, Object> doubleVars){
-		
-		val solutionsList = new ArrayList<Triplet<String, String, String>>
-		val dslKeys = dslVars.keySet
-		
-//		System.out.println
-//		System.out.println("dslKeys: " + dslKeys.toString) 
-//		System.out.println
-		
-		System.out.println
-		System.out.println("intKeys: " + intVars.keySet.toString) 
-		System.out.println
-		
-		System.out.println
-		System.out.println("doubleVars: " + doubleVars.keySet.toString) 
-		System.out.println
-		
-		dslKeys.forEach[ 
-			
-			key | val dslVariable = (dslVars.get(key) as VAR_DECL)
-			val dslVarType = dslVariable.type.type
-			val dslFlow = dslVariable.flow.flow
-			
-			System.out.println
-			System.out.println("key: " + key) 
-			System.out.println
-		
-			switch(dslVarType){
-				case "int": {
-					val solverIntVar = intVars.get(key)
-		
-					System.out.println("solverObject: " + solverIntVar.toString) 
-				
-					val solution = pb.getIntValue(solverIntVar)
-					solutionsList.add(new Triplet(dslFlow, key.removeSSAindex , solution.toString))
-				}
-				
-				case "real": {
-					val solverDoubleVar = doubleVars.get(key)
-					
-					if(solverDoubleVar != null){
-						System.out.println("Je ne suis pas null: " + solverDoubleVar.toString) 
-					}
-									
-					val solution = pb.getRealValue(solverDoubleVar)
-					solutionsList.add(new Triplet(dslFlow, key.removeSSAindex , solution.toString))
-				}
-				
-				case "enum": {
-					val solverEnumVar = intVars.get(key)
-					System.out.println("solverObject: " + solverEnumVar.toString) 
-					val solution = pb.getIntValue(solverEnumVar)
-					val enumSolution = (dslVariable.range as LSET).value.get(solution)
-					solutionsList.add( new Triplet(dslFlow , key.removeSSAindex , enumSolution.literalValue))
-				}
-				
-				default:{ /*To be handled later */}
-
-			}//switch
-		]//forEach
-	
-		return solutionsList
-	
-	}//recordSolutions
-
-}//class
+}//class	

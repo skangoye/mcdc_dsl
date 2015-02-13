@@ -34,6 +34,7 @@ import org.xtext.moduleDsl.strLITERAL
 import org.xtext.moduleDsl.hexLITERAL
 import org.xtext.moduleDsl.unknowLITERAL
 import org.xtext.moduleDsl.CST_DECL
+import org.xtext.moduleDsl.MODULO
 
 class DslUtils {
 	
@@ -435,6 +436,7 @@ class DslUtils {
 	  		SUB: "(" + stringReprOfExpression(expression.left) + "-" + stringReprOfExpression(expression.right) + ")"
 	  		MULT: "(" + stringReprOfExpression(expression.left) + "*" + stringReprOfExpression(expression.right) + ")"
 	  		DIV: "(" + stringReprOfExpression(expression.left) + "/" + stringReprOfExpression(expression.right) + ")"
+	  		MODULO: "(" + stringReprOfExpression(expression.left) + "%" + stringReprOfExpression(expression.right) + ")"
 	  		VarExpRef: expression.vref.name 
 	  		intConstant: expression.value.toString
 	  		realConstant:expression.value.toString
@@ -523,6 +525,7 @@ class DslUtils {
 	  		SUB: return "(" + arithRepr(expression.left)+ "-" +  arithRepr(expression.right) +")"
 	  		MULT: return "(" + arithRepr(expression.left)+ "*" +  arithRepr(expression.right) +")"
 	  		DIV: return "(" + arithRepr(expression.left)+ "/" +  arithRepr(expression.right) +")"
+	  		MODULO: return "(" + arithRepr(expression.left)+ "%" +  arithRepr(expression.right) +")"
 	  		intConstant: return expression.value.toString
 	  		realConstant: return expression.value.toString
 	  		strConstant: return expression.value.toString

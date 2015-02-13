@@ -966,7 +966,7 @@ class MCDC_Statement {
 								
 								if(currentTriplet.first.get(0) == "*"){
 									//retrieve the outcome value of the condition
-									val outcome = currentTriplet.second.get(0).charAt(0)
+									val outcome = currentTriplet.third.extractIdentIndex//currentTriplet.second.get(0).charAt(0)
 									//set all the values of the current
 									currentTriplet.setSecond((outcome + (currentListOfVariables.size-1).unknownStringVector).toStringArray)
 								}

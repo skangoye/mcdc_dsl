@@ -50,10 +50,10 @@ class ModuleDslGenerator implements IGenerator {
 						«val flow = variable.first»
 						«val name = variable.second»
 						«val value = variable.third»	
-						«IF flow == "in" ||  flow == "inout"»
+						«IF flow == "input"»
 							input: « name » => «value»
 						«ENDIF»					
-						«IF flow == "out"»
+						«IF flow == "output"»
 							expected: « name » => «value»
 						«ENDIF»	
 					

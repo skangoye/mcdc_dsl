@@ -33,6 +33,7 @@ import static extension org.xtext.utils.DslUtils.*
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.xtext.type.provider.ExpressionsTypeProvider.*
 import org.xtext.moduleDsl.ASSIGN_STATEMENT
+import org.xtext.moduleDsl.MODULO
 
 class pathConstraintsUtils {
 	
@@ -107,6 +108,12 @@ class pathConstraintsUtils {
 			
 			DIV:{
 				bt.setTree(new BinaryTree< Couple<String,String> >(new Couple( "/" , expression.left.typeFor)))
+				expression.left.toBTExpression(bt.left)
+				expression.right.toBTExpression(bt.right)
+			}
+			
+			MODULO:{
+				bt.setTree(new BinaryTree< Couple<String,String> >(new Couple( "%" , expression.left.typeFor)))
 				expression.left.toBTExpression(bt.left)
 				expression.right.toBTExpression(bt.right)
 			}

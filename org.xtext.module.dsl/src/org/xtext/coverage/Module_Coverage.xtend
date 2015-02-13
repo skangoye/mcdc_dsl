@@ -43,41 +43,45 @@ class Module_Coverage {
 	/**
 	 * Provide a coverage report of MC/DC values that have been covered by tests
 	 */
-	def private coverageReport(List<Couple<String, Set<String>>> covered, List<EXPRESSION> boolExps){
-		
-		var result = ""
-		 
-		for(couple:covered) {
-			
-			val boolExpIdentifier = couple.first
-			val boolExp = boolExps.get(boolExpIdentifier.parseInt)
-			val set = couple.second //set of the current decision's MCDC values
-			val decisionConditions = boolExp.booleanConditions //list of the current decision's conditions
+	def private coverageReport(HashMap<String, Set<String>> covered, List<EXPRESSION> boolExps){	
 
-			//form MCDC pairs of the decision's conditions
-			val setF = set.filter[ it.charAt(0).toString == "F"] //MCDC values whose outcome is False
-			val setT = set.filter[ it.charAt(0).toString == "T"] //MCDC values whose outcome is True
-			val map = new HashMap<String, Couple<String,String>> //map condition index with its MCDC pair
-			
-			setT.forEach[ strT |
-				setF.forEach[
-					strF | 
-					val strTwithoutOutcome = strT.substring(1, strT.length) //The first char of strT is the outcome of the boolExp
-					val strFwithoutOutcome = strF.substring(1, strF.length) //The first char of strF is the outcome of the boolExp
-					val independanceCouple = independantPairs(strTwithoutOutcome, strFwithoutOutcome)
-					val isIndependentPair = independanceCouple.first.booleanValue
-					if(isIndependentPair){
-						//strT and strF form a MC/DC pair for the condition number "conditionIndex"
-						val conditionIndex = independanceCouple.second
-						val put = map.put(conditionIndex.toString, new Couple(strTwithoutOutcome + "|" + "T", strFwithoutOutcome + "|" + "F"))
-					}
-				]//forEach
-			]//forEach
+		var result = ""
+		val size = boolExps.size
 		
-			//print conditions coverage information
-			result = result + nextLine + ("##### Decision " + boolExpIdentifier+ ": " + "=>" + boolExp.stringReprOfExpression) + nextLine
-			var index = 0
+		for(var identifier = 0; identifier<size; identifier++){
 			
+			val boolExp = boolExps.get(identifier)
+			val decisionConditions = boolExp.booleanConditions //list of the current decision's conditions
+			val map = new HashMap<String, Couple<String,String>> //map condition index with its MCDC pair	
+			
+			if(covered.containsKey(identifier.toString)){
+				
+				val set = covered.get(identifier.toString)//set of the current decision's MCDC values								
+				//form MCDC pairs of the decision's conditions
+				val setF = set.filter[ it.charAt(0).toString == "F"] //MCDC values whose outcome is False
+				val setT = set.filter[ it.charAt(0).toString == "T"] //MCDC values whose outcome is True
+			
+				setT.forEach[ strT |
+					setF.forEach[
+						strF | 
+						val strTwithoutOutcome = strT.substring(1, strT.length) //The first char of strT is the outcome of the boolExp
+						val strFwithoutOutcome = strF.substring(1, strF.length) //The first char of strF is the outcome of the boolExp
+						val independanceCouple = independantPairs(strTwithoutOutcome, strFwithoutOutcome)
+						val isIndependentPair = independanceCouple.first.booleanValue
+						if(isIndependentPair){
+							//strT and strF form a MC/DC pair for the condition number "conditionIndex"
+							val conditionIndex = independanceCouple.second
+							map.put(conditionIndex.toString, new Couple(strTwithoutOutcome + "|" + "T", strFwithoutOutcome + "|" + "F"))
+						}
+					]//forEach
+				]//forEach
+			
+			}//if
+			
+			//print conditions coverage information
+			result = result + nextLine + ("##### Decision " + identifier + ": " + "=>" + boolExp.stringReprOfExpression) + nextLine
+			
+			var index = 0	
 			for(condition: decisionConditions){ //for each condition
 				
 				val mcdcPair = map.get(index.toString)
@@ -95,8 +99,8 @@ class Module_Coverage {
 			
 			}//for
 		
-		}//for
-		
+		}
+			
 		return result
 	
 	}//coverageReport
@@ -110,7 +114,7 @@ class Module_Coverage {
 			result =  ("##### All Conditions have been covered ##### ") + nextLine
 		}
 		else{
-			result =  ("##### " + fullCoverage+  " Conditions have not been covered ##### ") + nextLine
+			result =  ("##### " + fullCoverage +  " Conditions have not been covered ##### ") + nextLine
 		}
 		
 		return result
@@ -146,8 +150,8 @@ class Module_Coverage {
 	 */
 	def coverageAttributes(List<List<Couple<String,String>>> CoveredSequence, List<List<String>> listOfMcdcValues){
 		
-		val notCovered = new ArrayList<Couple<String, Set<String>>> //set to record MC/DC not covered values
-		val covered = new ArrayList<Couple<String, Set<String>>> // set to record MC/DC covered values
+		val notCovered = new HashMap<String, Set<String>> //ArrayList<Couple<String, Set<String>>> //set to record MC/DC not covered values
+		val covered = new HashMap<String, Set<String>> //ArrayList<Couple<String, Set<String>>> // set to record MC/DC covered values
 		val coverageMatrix = listOfMcdcValues.makeCoverageMatrix(CoveredSequence) //coverage matrix
 		
 		coverageMatrix.forEach[
@@ -168,9 +172,9 @@ class Module_Coverage {
 			]
 			
 			if(notCoveredSet.size > 0)
-				notCovered.add( new Couple(condNumber.toString, notCoveredSet))
+				notCovered.put(condNumber.toString, notCoveredSet)
 			if(coveredSet.size > 0)
-				covered.add( new Couple(condNumber.toString, coveredSet))	
+				covered.put(condNumber.toString, coveredSet)	
 		]//forEach
 	
 		return new Couple(covered, notCovered)

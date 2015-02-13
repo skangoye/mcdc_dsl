@@ -149,7 +149,7 @@ LOOP_STATEMENT:
 ;
 
 ERROR_STATEMENT:
-	'error' {ERROR_STATEMENT} (';')?
+	'error' {ERROR_STATEMENT} '(' message = STRING ')' (';')?
 ; 
  
 ASSIGN_STATEMENT:
@@ -189,9 +189,11 @@ ADD_SUB returns EXPRESSION:
 ;
 
 MULT_DIV returns EXPRESSION:
-	PrimaryExpression (({MULT.left=current} '*' | {DIV.left=current} '/') right=PrimaryExpression)*
+	MODULO (({MULT.left=current} '*' | {DIV.left=current} '/') right=MODULO)*
 ;
-
+MODULO returns EXPRESSION:
+	PrimaryExpression ({MODULO.left=current} '%' right=PrimaryExpression)*
+;
 PrimaryExpression returns EXPRESSION:
 	'(' EXPRESSION ')' | {NOT} 'not' exp=PrimaryExpression | Atomic
 ;

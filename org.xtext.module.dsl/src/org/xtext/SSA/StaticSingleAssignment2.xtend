@@ -31,7 +31,7 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.xtext.type.provider.ExpressionsTypeProvider.*
 import org.xtext.moduleDsl.ASSIGN_STATEMENT
 import org.xtext.moduleDsl.CST_DECL
-
+import org.xtext.moduleDsl.MODULO
 
 class StaticSingleAssignment2 {
 	
@@ -311,6 +311,12 @@ class StaticSingleAssignment2 {
 			
 			DIV:{
 				bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet( "/" , "", expression.left.typeFor)))
+				expression.left.toBTExpression(bt.left)
+				expression.right.toBTExpression(bt.right)
+			}
+			
+			MODULO:{
+				bt.setTree(new BinaryTree< Triplet<String,String,String> >(new Triplet( "%" , "", expression.left.typeFor)))
 				expression.left.toBTExpression(bt.left)
 				expression.right.toBTExpression(bt.right)
 			}

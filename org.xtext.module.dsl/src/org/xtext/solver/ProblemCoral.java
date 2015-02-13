@@ -40,9 +40,9 @@ public class ProblemCoral {
 	
 	public static void configure(/*gov.nasa.jpf.Config conf*/) {
 		long seed = 464655;//conf.getLong("coral.seed",464655);
-		int nIterations = 600; //conf.getInt("coral.iterations",-1);
+		int nIterations = 2000; //conf.getInt("coral.iterations",-1);
 		SolverKind kind = SolverKind.PSO_OPT4J ;//valueOf("RANDOM");
-		boolean optimize = true;//conf.getBoolean("coral.optimize", true);
+		boolean optimize = false;//true;//conf.getBoolean("coral.optimize", true);
 		String intervalSolver = "none";//conf.getString("coral.interval_solver","none").toLowerCase();
 		String intervalSolverPath = "none";//conf.getString("coral.interval_solver.path","none");
 		
@@ -849,6 +849,25 @@ public class ProblemCoral {
 	}
 
 	
+	/**
+	 * 
+	 */
+	
+	public Object mod(Object exp, int value){
+		return Util.mod((SymInt)exp, Util.createConstant(value));
+	}
+	
+	public Object mod(Object exp1, Object exp2){
+		
+		if(exp1 instanceof SymInt && exp2 instanceof SymInt){
+			return Util.mod((SymInt)exp1, (SymInt)exp2);
+		}
+		if(exp1 instanceof SymInt && exp2 instanceof Integer){
+			return this.mod(exp1, ((Integer)exp2).intValue());
+		}
+		throw new UnsupportedOperationException("## Not supported ##");
+	}
+	
 	
 	/*
 	 * Logical and
@@ -1171,7 +1190,7 @@ public class ProblemCoral {
 					result = 0;
 				}
 				else{
-					//unknow result
+					result = -1 ;//unknow result
 				}
 			}
 		} catch (Exception _) {
@@ -1233,7 +1252,7 @@ public class ProblemCoral {
 	public int getIntValue(Object dpVar) {
 		SymNumber symNumber = sol.getValue((SymLiteral)dpVar);
 		try {
-		return symNumber.evalNumber().intValue();
+			return symNumber.evalNumber().intValue();
 		} catch (NullPointerException _) {
 			throw _;
 		}

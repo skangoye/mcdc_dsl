@@ -15,8 +15,7 @@ import org.xtext.helper.Triplet
 import org.xtext.moduleDsl.MODULE_DECL
 import org.xtext.optimization.optimStrategy1
 
-import static org.xtext.tests.data.TestDataGeneration.*
-
+import static org.xtext.tests.data.TestDataGeneration2.*
 import static extension org.xtext.SSA.StaticSingleAssignment2.*
 import static extension org.xtext.cfg.DslControlflowGraph.*
 import static extension org.xtext.equations.solving.ChocoEquationsTranslator.*
@@ -35,6 +34,8 @@ class MCDC_Module {
 	}
 	
 	def mcdcOfModule(MODULE_DECL module){
+		
+		val startTime = System.currentTimeMillis();
 		
 		val mcdcStatement = new MCDC_Statement() //new MCDC_Statement instance
 		val optim = new optimStrategy1() // new optimization instance
@@ -62,37 +63,39 @@ class MCDC_Module {
 				
 		val feasiblePathsForMcdc = feasiblePaths.filterBooleanExpressions //remove non-boolean expressions
 
-//		System.out.println("####### TESTS SUITE #######")
+		System.out.println("####### TESTS SUITE #######")
 		val mergedSuite = mcdcStatement.mergeMcdcValues(feasiblePathsForMcdc) //merge MC/DC values 
-//		mergedSuite.printListOfTriplet
-//		
+		mergedSuite.printListOfTriplet
+		
 		val decomposeMergedResult = mcdcStatement.splitMergedValues(mergedSuite) //Split the merged results
 
-//		System.out.println("####### COVERAGE RESULT #######")
-//		for(triplet:coverageResult){
-//			System.out.println
-//			System.out.print(triplet.first.toString + " => ")
-//			System.out.print(triplet.second.toString + " => " )
-//			System.out.println(triplet.third.toString )
-//			System.out.println
-//		}
+		System.out.println("####### COVERAGE RESULT #######")
+		for(triplet:decomposeMergedResult){
+			System.out.println
+			System.out.print(triplet.first.toString + " => ")
+			System.out.print(triplet.second.toString + " => " )
+			System.out.println(triplet.third.toString )
+			System.out.println
+		}
 		
 		val notMergedValues = mcdcStatement.notMergedValues(decomposeMergedResult) //not merged values
 		
-//		System.out.println("####### NOT COVERED #######")
-//		notMergedValues.printListOfTriplet
+		System.out.println("####### NOT COVERED #######")
+		notMergedValues.printListOfTriplet
 		
-		if(notMergedValues.size != 0){ //values in notMergedValues have not been covered
+		System.out.println("Not covered size " + notMergedValues.size)
+		
+		if(notMergedValues.size > 0){ //values in notMergedValues have not been covered
 			
 			val listOfEquations = mcdcStatement.buildEquations(notMergedValues, feasiblePathsForMcdc)//get the equations
 //			
-//			System.out.println ("####### EQUATIONS ####### ")
-//			for(r: listOfEquations){
-//				System.out.println("{")
-//				r.printListOfTriplet
-//				System.out.println("}")
-//				System.out.println
-//			}
+			System.out.println ("####### EQUATIONS ####### ")
+			for(r: listOfEquations){
+				System.out.println("{")
+				r.printListOfTriplet
+				System.out.println("}")
+				System.out.println
+			}
 			
 			//try to solve the equations
 			for(equations: listOfEquations){
@@ -110,10 +113,13 @@ class MCDC_Module {
 //			newNotCoveredValues.printListOfTriplet
 			
 		}//notMergedValues.size != 0
-			
+		
+//		System.out.println("####### TESTS SUITE #######")
+//		mergedSuite.printListOfTriplet
+		
 		val testSuiteMap = mergedSuite.mergedSuiteToTestSuite
 	
-		val solutions = testDataGen(module, testSuiteMap, pathsIdentSequencesMap, hashmap)
+		val solutions = testDataGeneration(module, testSuiteMap, pathsIdentSequencesMap, hashmap)
 		
 		val coveredSequences = solutions.keySet.toList
 		
@@ -121,9 +127,12 @@ class MCDC_Module {
 		
 		val optimizedSolutions = optim.optimize(mcdcStatement.getAllExpressionsMcdcValues, solutions)
 		
+		val stopTime = System.currentTimeMillis();
+      	val elapsedTime = stopTime - startTime;
+		System.out.println(elapsedTime);
+		
 		return new Couple(optimizedSolutions, coverageReport)
 		
-	
 	}//mcdcOfModule
 	
 	def getGraphPaths(DirectedWeightedMultigraph<Node, LabeledWeightedEdge> graph){

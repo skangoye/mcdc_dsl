@@ -33,6 +33,7 @@ import org.xtext.helper.Couple
 import org.xtext.moduleDsl.MODULE_DECL
 import java.util.Map
 import java.util.ArrayList
+import org.xtext.moduleDsl.MODULO
 
 class McdcDecisionUtils {
 	
@@ -207,6 +208,10 @@ class McdcDecisionUtils {
 		
 			DIV: {
 				pb.div(pb.toSolverExpression(expression.left, outcome) , pb.toSolverExpression(expression.right, outcome))
+			}
+			
+			MODULO:{
+				pb.mod(pb.toSolverExpression(expression.left, outcome) , pb.toSolverExpression(expression.right, outcome))
 			}
 			
 			VarExpRef:{

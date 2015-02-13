@@ -19,6 +19,7 @@ import org.xtext.moduleDsl.SUB
 import org.xtext.moduleDsl.ADD
 import org.xtext.moduleDsl.VarExpRef
 import org.xtext.moduleDsl.AbstractVAR_DECL
+import org.xtext.moduleDsl.MODULO
 
 class ExpressionsTypeProvider {
 	public static val intType = 'int'
@@ -44,6 +45,7 @@ class ExpressionsTypeProvider {
 	 		NOT         :  boolType
 	 		EQUAL_DIFF  :  boolType
 	 		COMPARISON  :  boolType
+	 		MODULO		:  intType
 	 		MULT		:  typeForMult(e)
 	 		DIV			:  typeForDiv(e)
 	 		SUB			:  typeForSub(e)

@@ -70,16 +70,20 @@ class MCDC_Of_Decision3 {
 	 	
 	 	val size = falseValueWithWeight.get(0).first.length //size of the decision == mcdcCanditate.length
 	 	val  listOfIndepVectors = new ArrayList<List<Couple<Couple<String,Integer>, Couple<String,Integer>>>>
+	 	val feasibleTestCases = new TreeSet<String>
 	 	
 	 	listOfIndepVectors.fillWithEmptyElements(size)
 	 	
 	 	for(fc : feasibleFalseValueWithWeight){
+	 		feasibleTestCases.add(fc.first)
 	 		for(tc : feasibleTrueValueWithWeight){
+	 			feasibleTestCases.add(tc.first)
 	 			addIndepVector(fc, tc, listOfIndepVectors)
 	 		}
 	 	}
 	 	
 //	 	System.out.println(" Total number of Values: " + (feasibleFalseValueWithWeight.size + feasibleTrueValueWithWeight.size))	 		 	
+//	 	System.out.println(" Feasible tests cases: " + feasibleTestCases.toString)
 //	 	System.out.println(" listOfIndepVectors: " + listOfIndepVectors.size)	
 //	 	System.out.println	
 		
@@ -107,8 +111,8 @@ class MCDC_Of_Decision3 {
 	 	
 	 	]//forEach
 	 	
-	 	System.out.println( "MCDC of " + booleanExpression.stringReprOfExpression + ": " + finalMCDCValues.toString)
-	 	System.out.println
+//	 	System.out.println( "MCDC of " + booleanExpression.stringReprOfExpression + ": " + finalMCDCValues.toString)
+//	 	System.out.println
 	 		 	
 	 	return finalMCDCValues.toList
 	 
