@@ -5,7 +5,7 @@ import org.xtext.helper.Couple;
 public class GetRational {
 
 	public static void main(String[] args){
-		Couple<Long,Long> c = toRational(0.75);
+		Couple<Long,Long> c = toRational(0.00000);
 		System.out.println( c.getFirst() + "/" + c.getSecond());
 	}
 	
@@ -41,7 +41,11 @@ public class GetRational {
 	//a>=b
 	private static long GCD(long a, long b){
 		
-		long remainder = a%b;
+		if(b==0){
+			return a;
+		}
+		
+		long remainder = a%b; 
 		
 		if(remainder == 0)
 			return b;
